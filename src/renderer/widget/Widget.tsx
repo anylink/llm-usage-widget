@@ -1,24 +1,38 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import type { AlertEvent, DisplayConfig, QuotaWindow, SchedulerSnapshot, UsageEntry } from '@shared/types'
+import { i18n } from './i18n'
+import { resolveLocale } from '@shared/i18n'
 
-const STATUS_TEXT: Record<string, string> = {
-  ok: '',
-  updating: '查询中…',
-  network: '网络不可达 · 显示上次值',
-  http: '接口异常',
-  auth: '鉴权失败,请检查 Key',
-  parse: '响应解析失败',
-  business: '接口返回错误'
+/** 状态 → 本地化文案('ok' 返回空) */
+function statusText(t: TFunction, status: string): string {
+  switch (status) {
+    case 'updating':
+      return t('status.updating')
+    case 'network':
+      return t('status.network')
+    case 'http':
+      return t('status.http')
+    case 'auth':
+      return t('status.auth')
+    case 'parse':
+      return t('status.parse')
+    case 'business':
+      return t('status.business')
+    default:
+      return ''
+  }
 }
 
 /** 全部未配置时展示的示例数据(套餐型,演示进度条/窗口/倒计时) */
-function demoEntry(): UsageEntry {
+function demoEntry(t: TFunction): UsageEntry {
   const now = Math.floor(Date.now() / 1000)
   return {
     vendorId: 'demo',
-    vendorName: '示例厂商 · 套餐',
+    vendorName: t('widget.demoQuotaVendor'),
     accountId: 'demo',
-    accountName: '示例',
+    accountName: t('widget.demoAccount'),
     kind: 'quota',
     color: '#4d6bfe',
     status: 'ok',
@@ -32,12 +46,12 @@ function demoEntry(): UsageEntry {
 }
 
 /** 全部未配置时展示的示例数据(余额型,演示金额+币种) */
-function demoBalanceEntry(): UsageEntry {
+function demoBalanceEntry(t: TFunction): UsageEntry {
   return {
     vendorId: 'demo-balance',
-    vendorName: '示例厂商 · 余额',
+    vendorName: t('widget.demoBalanceVendor'),
     accountId: 'demo-balance',
-    accountName: '示例',
+    accountName: t('widget.demoAccount'),
     kind: 'balance',
     color: '#10b981',
     status: 'ok',
@@ -48,20 +62,20 @@ function demoBalanceEntry(): UsageEntry {
   }
 }
 
-function fmtCountdown(resetEpoch: number): string {
+function fmtCountdown(resetEpoch: number, t: TFunction): string {
   const secs = resetEpoch - Date.now() / 1000
-  if (secs <= 0) return '即将重置'
+  if (secs <= 0) return t('widget.resetting')
   const h = Math.floor(secs / 3600)
   const m = Math.floor((secs % 3600) / 60)
-  if (h >= 24) return `${Math.floor(h / 24)}天${h % 24}时后重置`
-  return h > 0 ? `${h}时${m}分后重置` : `${m}分后重置`
+  if (h >= 24) return t('widget.resetInDays', { d: Math.floor(h / 24), h: h % 24 })
+  return h > 0 ? t('widget.resetInHours', { h, m }) : t('widget.resetInMinutes', { m })
 }
 
-function fmtAge(queriedAt: number): string {
+function fmtAge(queriedAt: number, t: TFunction): string {
   const secs = Math.max(0, Date.now() / 1000 - queriedAt)
-  if (secs < 60) return '刚刚更新'
-  if (secs < 3600) return `${Math.floor(secs / 60)} 分钟前更新`
-  return `${Math.floor(secs / 3600)} 小时前更新`
+  if (secs < 60) return t('widget.justUpdated')
+  if (secs < 3600) return t('widget.minutesAgo', { count: Math.floor(secs / 60) })
+  return t('widget.hoursAgo', { count: Math.floor(secs / 3600) })
 }
 
 function barColor(u: number, alerts: DisplayConfig['alerts']): string {
@@ -116,32 +130,33 @@ function Toolbar({
   onPatch(patch: Partial<DisplayConfig>): void
   onOpenSettings(): void
 }) {
+  const { t } = useTranslation()
   const collapsed = display.collapsed
   return (
     <div className="toolbar drag">
       <button
         className="tbtn no-drag"
-        title={collapsed ? '展开' : '收起'}
+        title={collapsed ? t('widget.expand') : t('widget.collapse')}
         onClick={() => onPatch({ collapsed: !collapsed })}
       >
         <TIcon d={collapsed ? ICONS.collapseDown : ICONS.collapseUp} />
       </button>
       <button
         className="tbtn no-drag"
-        title={display.mode === 'carousel' ? '切换为列表' : '切换为轮播'}
+        title={display.mode === 'carousel' ? t('widget.switchToList') : t('widget.switchToCarousel')}
         onClick={() => onPatch({ mode: display.mode === 'carousel' ? 'list' : 'carousel' })}
       >
         <TIcon d={display.mode === 'carousel' ? ICONS.toList : ICONS.toCarousel} />
       </button>
-      <span className="t-title">LLM Usage Widget</span>
+      <span className="t-title">{t('app.name')}</span>
       <button
         className={`tbtn no-drag ${display.locked ? 't-on' : ''}`}
-        title={display.locked ? '解锁位置' : '锁定位置'}
+        title={display.locked ? t('widget.unlock') : t('widget.lock')}
         onClick={() => onPatch({ locked: !display.locked })}
       >
         <TIcon d={display.locked ? ICONS.lock : ICONS.unlock} />
       </button>
-      <button className="tbtn no-drag" title="进入设置" onClick={onOpenSettings}>
+      <button className="tbtn no-drag" title={t('widget.openSettings')} onClick={onOpenSettings}>
         <TIcon d={ICONS.gear} />
       </button>
     </div>
@@ -164,9 +179,10 @@ function Card({
   extraHead?: React.ReactNode
   toolbar?: React.ReactNode
 }) {
+  const { t } = useTranslation()
   const primary = entry.windows?.[0]
   const alerts = display.alerts
-  const errText = STATUS_TEXT[entry.status] ?? ''
+  const errText = statusText(t, entry.status)
   return (
     <div className="card" style={{ ['--accent' as string]: entry.color }}>
       {toolbar}
@@ -207,7 +223,7 @@ function Card({
                     />
                   </span>
                   <span className="win-val">{w.utilization}%</span>
-                  <span className="win-reset">{w.resetEpoch ? fmtCountdown(w.resetEpoch) : ''}</span>
+                  <span className="win-reset">{w.resetEpoch ? fmtCountdown(w.resetEpoch, t) : ''}</span>
                 </div>
               ))}
             </div>
@@ -218,15 +234,15 @@ function Card({
             <span className="balance-unit">{entry.unit}</span>
           </div>
         ) : (
-          <div className={`state ${entry.status === 'auth' ? 'state-err' : ''}`}>{errText || '查询中…'}</div>
+          <div className={`state ${entry.status === 'auth' ? 'state-err' : ''}`}>{errText || t('status.updating')}</div>
         )}
-        {isDemo && <div className="demo-note">示例数据 · 配置任意厂商后展示真实用量</div>}
+        {isDemo && <div className="demo-note">{t('widget.demoNote')}</div>}
       </div>
 
       <div className="foot drag">
         <span className="foot-left">{footLeft ?? ''}</span>
         <span className={`foot-status ${entry.status === 'ok' ? '' : 'foot-warn'}`}>
-          {entry.status === 'ok' ? fmtAge(entry.queriedAt) : errText}
+          {entry.status === 'ok' ? fmtAge(entry.queriedAt, t) : errText}
         </span>
       </div>
     </div>
@@ -245,12 +261,13 @@ function ListMode({
   isDemo?: boolean
   toolbar?: React.ReactNode
 }) {
+  const { t } = useTranslation()
   const alerts = display.alerts
   return (
     <div className="card list" id="list-card">
       {toolbar}
       <div className="head drag">
-        <span className="name">{isDemo ? '示例展示' : `全部厂商 (${entries.length})`}</span>
+        <span className="name">{isDemo ? t('widget.listDemoTitle') : t('widget.listTitle', { count: entries.length })}</span>
       </div>
       <div className="list-body">
         {entries.map((e) => {
@@ -288,23 +305,23 @@ function ListMode({
                   {e.value} <em>{e.unit}</em>
                 </span>
               ) : (
-                <span className="li-val li-err" title={STATUS_TEXT[e.status] ?? ''}>
+                <span className="li-val li-err" title={statusText(t, e.status)}>
                   {e.status === 'updating' ? '…' : '!'}
                 </span>
               )}
             </div>
           )
         })}
-        {isDemo && <div className="demo-note">示例数据 · 套餐与余额两种形态,配置任意厂商后展示真实用量</div>}
+        {isDemo && <div className="demo-note">{t('widget.demoListNote')}</div>}
       </div>
       <div className="foot drag">
-        <span className="foot-left">{isDemo ? '未配置' : ''}</span>
+        <span className="foot-left">{isDemo ? t('widget.notConfigured') : ''}</span>
         <span className="foot-status">
           {isDemo
             ? ''
             : entries.every((e) => e.status === 'ok')
-              ? fmtAge(entries[0]?.queriedAt ?? Date.now() / 1000)
-              : '部分厂商状态异常'}
+              ? fmtAge(entries[0]?.queriedAt ?? Date.now() / 1000, t)
+              : t('widget.listPartialError')}
         </span>
       </div>
     </div>
@@ -318,12 +335,23 @@ export function Widget() {
   const [page, setPage] = useState(0)
   const [, setTick] = useState(0) // 倒计时每秒重绘
   const bubbleTimer = useRef<number | undefined>(undefined)
+  const { t } = useTranslation()
 
   useEffect(() => {
     void window.api.getSnapshot().then((s) => setSnapshot(s as SchedulerSnapshot))
-    void window.api.getDisplay().then((d) => setDisplay(d as DisplayConfig))
+    void window.api.getDisplay().then((d) => {
+      setDisplay(d as DisplayConfig)
+      // 按用户偏好校正语言(auto = 系统语言)
+      const cfg = d as DisplayConfig
+      void i18n.changeLanguage(resolveLocale(cfg.locale, navigator.language))
+    })
     window.api.onUsageUpdated((s) => setSnapshot(s as SchedulerSnapshot))
-    window.api.onDisplayChanged((d) => setDisplay(d as DisplayConfig))
+    window.api.onDisplayChanged((d) => {
+      setDisplay(d as DisplayConfig)
+      // 运行中语言切换:与初始加载同款校正
+      const cfg = d as DisplayConfig
+      void i18n.changeLanguage(resolveLocale(cfg.locale, navigator.language))
+    })
     // L2 气泡:主进程评估出的阈值告警,8 秒自动收回;多条紧随其后时后到覆盖先到
     window.api.onAlertBubble((ev) => {
       setBubble(ev as AlertEvent)
@@ -419,9 +447,9 @@ export function Widget() {
   if (configured.length === 0) {
     body =
       display.mode === 'list' ? (
-        <ListMode entries={[demoEntry(), demoBalanceEntry()]} display={display} isDemo toolbar={toolbar} />
+        <ListMode entries={[demoEntry(t), demoBalanceEntry(t)]} display={display} isDemo toolbar={toolbar} />
       ) : (
-        <Card entry={demoEntry()} display={display} isDemo footLeft="未配置" toolbar={toolbar} />
+        <Card entry={demoEntry(t)} display={display} isDemo footLeft={t('widget.notConfigured')} toolbar={toolbar} />
       )
   } else if (display.mode === 'list') {
     body = <ListMode entries={configured} display={display} toolbar={toolbar} />
@@ -433,20 +461,20 @@ export function Widget() {
         entry={entry}
         display={display}
         toolbar={toolbar}
-        footLeft={count > 1 ? `${(page % count) + 1} / ${count}` : ''}
+        footLeft={count > 1 ? t('widget.pageIndicator', { cur: (page % count) + 1, total: count }) : ''}
         extraHead={
           <>
             {count > 1 && (
               <>
-                <button className="btn" title="上一家" onClick={() => setPage((p) => p - 1)}>
+                <button className="btn" title={t('widget.prevVendor')} onClick={() => setPage((p) => p - 1)}>
                   ‹
                 </button>
-                <button className="btn" title="下一家" onClick={() => setPage((p) => p + 1)}>
+                <button className="btn" title={t('widget.nextVendor')} onClick={() => setPage((p) => p + 1)}>
                   ›
                 </button>
               </>
             )}
-            <button className="btn" title="立即刷新" onClick={() => void window.api.refresh()}>
+            <button className="btn" title={t('widget.refreshNow')} onClick={() => void window.api.refresh()}>
               ↻
             </button>
           </>
@@ -462,14 +490,14 @@ export function Widget() {
       {bubble && (
         <div
           className={`bubble bubble-${bubble.level} no-drag`}
-          title="点击打开设置"
+          title={t('bubble.clickToOpen')}
           onClick={() => void window.api.openSettings()}
         >
           <span className="bubble-dot" style={{ background: bubble.color }} />
           <span className="bubble-text">{bubble.message}</span>
           <button
             className="bubble-x"
-            title="关闭"
+            title={t('bubble.close')}
             onClick={(e) => {
               e.stopPropagation()
               setBubble(null)

@@ -1,0 +1,158 @@
+{
+  "app": {
+    "name": "LLM Usage Widget",
+    "settingsTitle": "LLM Usage Widget Settings"
+  },
+  "status": {
+    "updating": "Updating…",
+    "network": "Network unreachable · showing last value",
+    "http": "API error",
+    "auth": "Auth failed — check your key",
+    "parse": "Failed to parse response",
+    "business": "API returned an error"
+  },
+  "widget": {
+    "demoQuotaVendor": "Demo Vendor · Plan",
+    "demoBalanceVendor": "Demo Vendor · Balance",
+    "demoAccount": "Demo",
+    "demoNote": "Demo data · real usage appears once any vendor is configured",
+    "demoListNote": "Demo data · plan & balance layouts; real usage appears once any vendor is configured",
+    "notConfigured": "Not configured",
+    "justUpdated": "Updated just now",
+    "minutesAgo": "Updated {{count}} min ago",
+    "hoursAgo": "Updated {{count}} h ago",
+    "resetting": "Resetting",
+    "resetInDays": "resets in {{d}}d {{h}}h",
+    "resetInHours": "resets in {{h}}h {{m}}m",
+    "resetInMinutes": "resets in {{m}}m",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "switchToList": "Switch to list",
+    "switchToCarousel": "Switch to carousel",
+    "lock": "Lock position",
+    "unlock": "Unlock position",
+    "openSettings": "Open settings",
+    "prevVendor": "Previous",
+    "nextVendor": "Next",
+    "refreshNow": "Refresh now",
+    "pageIndicator": "{{cur}} / {{total}}",
+    "listTitle": "All vendors ({{count}})",
+    "listDemoTitle": "Demo",
+    "listPartialError": "Some vendors failed"
+  },
+  "bubble": {
+    "clickToOpen": "Click to open settings",
+    "close": "Close"
+  },
+  "alerts": {
+    "quotaMsg": "{{label}} window {{pct}}% used, resets {{time}}",
+    "quotaMsgNoReset": "{{label}} window {{pct}}% used",
+    "balanceMsg": "Balance {{value}} {{unit}} is below minimum {{min}}"
+  },
+  "tray": {
+    "toggleWidget": "Show / hide widget",
+    "clickThrough": "Click-through",
+    "refresh": "Refresh now",
+    "settings": "Open settings",
+    "quit": "Quit"
+  },
+  "lang": {
+    "label": "Language",
+    "followSystem": "Follow system"
+  },
+  "settings": {
+    "nav": {
+      "vendors": "Vendors",
+      "display": "Display",
+      "alerts": "Alerts",
+      "about": "About"
+    },
+    "encryptionWarn": "⚠ System encryption unavailable — API keys will be stored in plain text!",
+    "vendors": {
+      "title": "Vendors",
+      "desc": "Click a vendor to configure it. Saving takes effect immediately; saved configs are loaded on every start.",
+      "quota": "Plan",
+      "balance": "Balance",
+      "accountsCount": "{{count}} account(s)",
+      "configured": "Configured",
+      "notConfigured": "Not configured",
+      "defError": "Vendor definition {{file}}: {{message}}",
+      "advanced": "Advanced",
+      "openVendorsDir": "Open vendor definitions folder (TOML hot-reload)",
+      "vendorsHint": "Same-id definitions in the user folder override built-in presets · v{{version}} · encryption {{enc}}",
+      "encAvailable": "available",
+      "encUnavailable": "unavailable",
+      "back": "‹ Back to vendors",
+      "quotaUsage": "Plan usage",
+      "balanceUsage": "Account balance",
+      "credentials": "Account credentials",
+      "accountAlias": "Account alias",
+      "save": "Save",
+      "addAccount": "＋ Add account",
+      "saved": "Saved and applied",
+      "vendorInfo": "Vendor info (from preset definition; override via the definitions folder)",
+      "id": "ID",
+      "type": "Type",
+      "typeQuota": "Plan quota",
+      "typeBalance": "Account balance",
+      "console": "Console",
+      "fieldKey": "API Key",
+      "fieldSecret": "Secret Key (SK)",
+      "fieldRegion": "Region"
+    },
+    "display": {
+      "title": "Display",
+      "desc": "Text and icons always stay fully opaque; opacity applies to the card background only, for a floating look.",
+      "form": "Layout",
+      "carousel": "Carousel",
+      "carouselHint": "One card at a time, configured vendors only",
+      "list": "List",
+      "listHint": "All configured vendors in one view",
+      "widget": "Widget",
+      "bgOpacity": "Background opacity: {{pct}}%",
+      "bgNone": "(no background — text and icons float on the desktop)",
+      "bgKeepOpaque": "(text and icons stay opaque)",
+      "alwaysOnTop": "Always on top",
+      "clickThrough": "Click-through (mouse passes to desktop)",
+      "refreshCycle": "Refresh & carousel",
+      "pollInterval": "Poll interval: {{sec}}s (balance vendors fixed at 5 min)",
+      "autoCycleOff": "Auto-advance: off",
+      "autoCycle": "Auto-advance: {{sec}}s"
+    },
+    "alertsPage": {
+      "title": "Alerts",
+      "desc": "When usage crosses a threshold: progress bar changes color → widget bubble (click to open settings) → system notification; no repeat until recovery within the same cycle.",
+      "ways": "Notification channels",
+      "bubble": "Widget bubble",
+      "notify": "System notification",
+      "thresholds": "Thresholds (plan type, by percent used)",
+      "warn": "Warning (turns orange): {{pct}}%",
+      "crit": "Critical (turns red): {{pct}}%",
+      "balance": "Balance type",
+      "balanceMin": "Balance minimum (alert below this, in the vendor's currency): {{min}}"
+    },
+    "about": {
+      "tagline": "A floating gauge for LLM usage on your desktop.",
+      "version": "Version",
+      "repo": "Repository",
+      "license": "License",
+      "licenseValue": "MIT · © 2026 Apanda",
+      "techStack": "Tech stack",
+      "author": "Author",
+      "credits": "Credits",
+      "privacy": "Queries official vendor APIs only; keys are stored locally and encrypted; zero telemetry."
+    }
+  },
+  "updater": {
+    "section": "Updates",
+    "checkNow": "Check for updates",
+    "restartInstall": "Restart & install",
+    "checking": "Checking for updates…",
+    "latest": "You're up to date",
+    "downloading": "Update v{{version}} found, downloading…",
+    "downloaded": "Update v{{version}} is ready — takes effect after restart",
+    "error": "Update check failed: {{message}}",
+    "devOnly": "Running in dev mode — update checks disabled",
+    "downloadedTitle": "Update ready"
+  }
+}

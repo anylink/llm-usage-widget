@@ -4,6 +4,8 @@ import { createPluginRegistry } from './engine/plugins'
 import { loadVendors, watchVendors, userVendorsDir } from './engine/loader'
 import { Scheduler } from './scheduler'
 import { AlertManager } from './alerts'
+import { createI18n, resolveLocale } from '@shared/i18n'
+import { Updater } from './updater'
 import {
   ensureDefaultAccounts,
   isEncryptionAvailable,
@@ -33,8 +35,16 @@ function bootstrap(): void {
     const loaded = loadVendors()
     const accounts = ensureDefaultAccounts(loaded.vendors)
 
+    // ── i18n(主进程:托盘/告警/通知)与自动更新 ──
+    const i18n = createI18n(resolveLocale(displayCfg.locale, app.getLocale()))
+    const updater = new Updater(i18n)
+    updater.onChange((s) => {
+      const w = windows.settings
+      if (w && !w.isDestroyed()) w.webContents.send('update:status', s)
+    })
+
     // ── 阈值提醒 L2/L3:调度器每轮刷新后评估,升级才发事件 ──
-    const alertManager = new AlertManager()
+    const alertManager = new AlertManager((key, params) => i18n.t(key, params))
     const scheduler = new Scheduler(createPluginRegistry(), displayCfg, (snapshot) => {
       for (const ev of alertManager.evaluate(snapshot.entries, displayCfg.alerts)) {
         if (displayCfg.alerts.bubble) {
@@ -43,7 +53,7 @@ function bootstrap(): void {
         }
         if (displayCfg.alerts.notify && Notification.isSupported()) {
           const n = new Notification({ title: ev.title, body: ev.message })
-          n.on('click', () => windows.openSettings())
+          n.on('click', () => windows.openSettings(i18n.t('app.settingsTitle')))
           n.show()
         }
       }
@@ -74,8 +84,8 @@ function bootstrap(): void {
         if (windows.widget) windows.applyClickThrough(windows.widget, displayCfg.clickThrough)
       },
       onRefresh: () => scheduler.refreshAll(),
-      onOpenSettings: () => windows.openSettings()
-    })
+      onOpenSettings: () => windows.openSettings(i18n.t('app.settingsTitle'))
+    }, i18n)
 
     // ── IPC ──
     ipcMain.handle('usage:snapshot', () => scheduler.snapshot())
@@ -94,6 +104,15 @@ function bootstrap(): void {
       }
       // 设置页切换点击穿透后,同步托盘菜单勾选(菜单勾选在构建时求值)
       if (patch.clickThrough !== undefined) tray.refreshMenu()
+      // 切换语言:主进程即时生效(托盘菜单/窗口标题/后续告警文案)
+      if (patch.locale !== undefined) {
+        void i18n.changeLanguage(resolveLocale(patch.locale, app.getLocale())).then(() => {
+          tray.refreshMenu()
+          if (windows.settings && !windows.settings.isDestroyed()) {
+            windows.settings.setTitle(i18n.t('app.settingsTitle'))
+          }
+        })
+      }
       windows.broadcastSettings()
       return displayCfg
     })
@@ -145,7 +164,7 @@ function bootstrap(): void {
       return id
     })
     ipcMain.handle('win:openSettings', () => {
-      windows.openSettings()
+      windows.openSettings(i18n.t('app.settingsTitle'))
       return true
     })
     ipcMain.handle('win:resizeWidget', (_e, dWidth: number, dHeight: number) => {
@@ -168,6 +187,9 @@ function bootstrap(): void {
     })
     ipcMain.handle('env:encryptionAvailable', () => isEncryptionAvailable())
     ipcMain.handle('app:version', () => app.getVersion())
+    // ── 自动更新 ──
+    ipcMain.handle('app:checkUpdate', () => updater.check())
+    ipcMain.handle('app:installUpdate', () => updater.restartAndInstall())
     ipcMain.handle('app:openExternal', (_e, url: string) => {
       if (typeof url === 'string' && url.startsWith('https://')) {
         void import('electron').then(({ shell }) => shell.openExternal(url))
@@ -190,6 +212,7 @@ function bootstrap(): void {
     })
 
     windows.createWidget()
+    updater.start()
 
     // 首次运行(无任何 Key)直接打开设置页引导
     const hasAnyKey = Object.values(loadAccounts()).some((list) => list.some((a) => a.key || a.secret))

@@ -1,5 +1,10 @@
 appId: com.anylink.llm-usage-widget
 productName: LLM Usage Widget
+# electron-updater 从 GitHub Releases 拉 latest.yml;GH_TOKEN 由 CI 提供
+publish:
+  provider: github
+  owner: anylink
+  repo: llm-usage-widget
 directories:
   output: dist
   buildResources: build

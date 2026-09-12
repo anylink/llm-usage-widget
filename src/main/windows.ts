@@ -78,7 +78,8 @@ export class WindowManager {
     win.setIgnoreMouseEvents(on, { forward: true })
   }
 
-  openSettings(): BrowserWindow {
+  /** title 由调用方传入(已本地化);页面加载后渲染层会再按语言设置 document.title */
+  openSettings(title?: string): BrowserWindow {
     if (this.settings && !this.settings.isDestroyed()) {
       this.settings.show()
       this.settings.focus()
@@ -89,7 +90,7 @@ export class WindowManager {
       height: 600,
       minWidth: 720,
       minHeight: 500,
-      title: 'LLM Usage Widget 设置',
+      title: title ?? 'LLM Usage Widget',
       autoHideMenuBar: true,
       webPreferences: {
         preload: path.join(__dirname, '../preload/index.js'),

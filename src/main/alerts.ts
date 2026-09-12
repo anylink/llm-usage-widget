@@ -1,8 +1,11 @@
 /* 阈值提醒状态机:进度条变色(L1)之上的 L2 气泡 / L3 系统通知事件源。
-   纯逻辑、零 electron 依赖,便于单测。去重语义:同一阈值恢复前不重弹(DESIGN.md §10)。 */
+   纯逻辑、零 electron 依赖,便于单测。去重语义:同一阈值恢复前不重弹(DESIGN.md §10)。
+   文案经注入的 t() 本地化(主进程 i18n 实例)。 */
 import type { AlertEvent, DisplayConfig, UsageEntry } from '@shared/types'
 
 type AlertsConfig = DisplayConfig['alerts']
+/** i18next 翻译函数形状 */
+export type TranslateFn = (key: string, params?: Record<string, string | number>) => string
 
 /** 恢复迟滞:已触发 warn 后需跌回 warnPct-5 以下才算完全恢复,防止在阈值附近反复提醒 */
 const HYSTERESIS_PCT = 5
@@ -16,6 +19,11 @@ interface AccountAlertState {
 
 export class AlertManager {
   private state = new Map<string, AccountAlertState>()
+  private t: TranslateFn
+
+  constructor(t: TranslateFn) {
+    this.t = t
+  }
 
   /** 每次调度器刷新后评估;返回本轮新产生的告警事件(升级才产生,静默降级不产生) */
   evaluate(entries: UsageEntry[], cfg: AlertsConfig): AlertEvent[] {
@@ -68,14 +76,17 @@ export class AlertManager {
     resetEpoch: number | undefined,
     cfg: AlertsConfig
   ): AlertEvent {
+    const label = e.windows[0]?.label ?? ''
     return {
       accountId: e.accountId,
       vendorId: e.vendorId,
       title: e.accountName && e.accountName !== e.vendorName ? `${e.vendorName} · ${e.accountName}` : e.vendorName,
       message:
         e.kind === 'quota'
-          ? `${e.windows[0]?.label ?? ''} 窗口已用 ${value}%` + (resetEpoch ? `,${fmtReset(resetEpoch)}重置` : '')
-          : `余额仅剩 ${value} ${e.unit ?? ''},低于下限 ${cfg.balanceMin}`,
+          ? resetEpoch
+            ? this.t('alerts.quotaMsg', { label, pct: value, time: fmtReset(resetEpoch) })
+            : this.t('alerts.quotaMsgNoReset', { label, pct: value })
+          : this.t('alerts.balanceMsg', { value, unit: e.unit ?? '', min: cfg.balanceMin }),
       level,
       kind: e.kind,
       color: e.color,

@@ -1,6 +1,9 @@
-/* 设置窗口:左侧导航 + 右侧内容(布局参考 Clawd on Desk 的设置框架,功能仅含本项目已实现的) */
+/* 设置窗口:左侧导航 + 右侧内容(布局参考 Clawd on Desk 的设置框架) */
 import React, { useEffect, useState } from 'react'
-import type { DisplayConfig } from '@shared/types'
+import { useTranslation } from 'react-i18next'
+import type { DisplayConfig, UpdateState } from '@shared/types'
+import { i18n } from './i18n'
+import { resolveLocale } from '@shared/i18n'
 
 interface VendorRow {
   id: string
@@ -23,10 +26,11 @@ interface CredentialForm {
   region: string
 }
 
-const FIELD_LABELS: Record<string, string> = {
-  key: 'API Key',
-  secret: 'Secret Key (SK)',
-  region: 'Region(区域)'
+/* 凭证字段 → i18n key(文案在 locales) */
+const FIELD_KEYS: Record<string, string> = {
+  key: 'fieldKey',
+  secret: 'fieldSecret',
+  region: 'fieldRegion'
 }
 
 type Page = 'vendors' | 'display' | 'alerts' | 'about'
@@ -102,20 +106,17 @@ function Logo({ size = 64 }: { size?: number }) {
   )
 }
 
-const NAV: { id: Page; label: string }[] = [
-  { id: 'vendors', label: '厂商配置' },
-  { id: 'display', label: '显示' },
-  { id: 'alerts', label: '提醒' },
-  { id: 'about', label: '关于' }
-]
+const NAV: { id: Page }[] = [{ id: 'vendors' }, { id: 'display' }, { id: 'alerts' }, { id: 'about' }]
 
 export function Settings() {
+  const { t } = useTranslation()
   const [page, setPage] = useState<Page>('vendors')
   const [data, setData] = useState<VendorListResp | null>(null)
   const [display, setDisplay] = useState<DisplayConfig | null>(null)
   const [version, setVersion] = useState('')
   const [enc, setEnc] = useState(true)
   const [openVendorId, setOpenVendorId] = useState<string | null>(null)
+  const [updateState, setUpdateState] = useState<UpdateState | null>(null)
 
   const loadList = (): void => {
     void window.api.getVendorList().then((d) => setData(d as VendorListResp))
@@ -125,7 +126,20 @@ export function Settings() {
     loadList()
     void window.api.getVersion().then(setVersion)
     void window.api.encryptionAvailable().then((v) => setEnc(v))
-    void window.api.getDisplay().then((d) => setDisplay(d as DisplayConfig))
+    void window.api.getDisplay().then((d) => {
+      setDisplay(d as DisplayConfig)
+      const cfg = d as DisplayConfig
+      void i18n.changeLanguage(resolveLocale(cfg.locale, navigator.language))
+      document.title = i18n.t('app.settingsTitle')
+    })
+    window.api.onDisplayChanged((d) => {
+      setDisplay(d as DisplayConfig)
+      const cfg = d as DisplayConfig
+      void i18n.changeLanguage(resolveLocale(cfg.locale, navigator.language)).then(() => {
+        document.title = i18n.t('app.settingsTitle')
+      })
+    })
+    window.api.onUpdateStatus((s) => setUpdateState(s as UpdateState))
   }, [])
 
   const patchDisplay = (patch: Partial<DisplayConfig>): void => {
@@ -164,7 +178,7 @@ export function Settings() {
   } else if (page === 'alerts' && display) {
     content = <AlertsPage display={display} onChange={patchDisplay} />
   } else if (page === 'about') {
-    content = <AboutPage version={version} />
+    content = <AboutPage version={version} updateState={updateState} />
   } else {
     content = <div className="page" />
   }
@@ -172,7 +186,7 @@ export function Settings() {
   return (
     <div className="app">
       <aside className="sidebar">
-        <div className="side-title">LLM Usage Widget</div>
+        <div className="side-title">{t('app.name')}</div>
         <nav>
           {NAV.map((n) => (
             <div
@@ -184,15 +198,13 @@ export function Settings() {
               }}
             >
               <Icon name={n.id} />
-              <span>{n.label}</span>
+              <span>{t(`settings.nav.${n.id}`)}</span>
             </div>
           ))}
         </nav>
       </aside>
       <main className="content">
-        {!enc && page !== 'about' && (
-          <div className="banner-warn">⚠ 系统加密不可用,API Key 将以明文保存在本地!</div>
-        )}
+        {!enc && page !== 'about' && <div className="banner-warn">{t('settings.encryptionWarn')}</div>}
         {content}
       </main>
     </div>
@@ -211,10 +223,12 @@ function VendorListPage({
   version: string
   enc: boolean
 }) {
+  const { t } = useTranslation()
+  const S = 'settings.vendors'
   return (
     <div className="page">
-      <h1>厂商配置</h1>
-      <p className="desc">点击厂商进入配置页,填写后保存立即生效;每次启动会自动加载已保存的配置。</p>
+      <h1>{t(`${S}.title`)}</h1>
+      <p className="desc">{t(`${S}.desc`)}</p>
       <section>
         {data?.vendors.map((v) => {
           const accs = data.accounts[v.id] ?? []
@@ -225,10 +239,10 @@ function VendorListPage({
                 {v.name.charAt(0)}
               </span>
               <span className="vname">{v.name}</span>
-              <span className="vkind">{v.kind === 'quota' ? '套餐' : '余额'}</span>
-              <span className="vacc">{accs.length} 个账户</span>
+              <span className="vkind">{v.kind === 'quota' ? t(`${S}.quota`) : t(`${S}.balance`)}</span>
+              <span className="vacc">{t(`${S}.accountsCount`, { count: accs.length })}</span>
               <span className={`badge ${configured ? 'ok' : 'todo'}`}>
-                {configured ? '已配置' : '未配置'}
+                {configured ? t(`${S}.configured`) : t(`${S}.notConfigured`)}
               </span>
               <span className="chevron">›</span>
             </div>
@@ -236,17 +250,20 @@ function VendorListPage({
         })}
         {data?.errors.map((e) => (
           <div className="banner-warn" key={e.file}>
-            厂商定义 {e.file}: {e.message}
+            {t(`${S}.defError`, { file: e.file, message: e.message })}
           </div>
         ))}
       </section>
       <section>
-        <h2>高级</h2>
+        <h2>{t(`${S}.advanced`)}</h2>
         <button className="ghost" onClick={() => void window.api.openVendorsDir()}>
-          打开厂商配置目录(TOML 热重载)
+          {t(`${S}.openVendorsDir`)}
         </button>
         <div className="hint" style={{ marginTop: 8 }}>
-          用户目录中的同名厂商定义会覆盖内置预置 · v{version} · 加密{enc ? '可用' : '不可用'}
+          {t(`${S}.vendorsHint`, {
+            version,
+            enc: enc ? t(`${S}.encAvailable`) : t(`${S}.encUnavailable`)
+          })}
         </div>
       </section>
     </div>
@@ -265,6 +282,8 @@ function VendorDetail({
   onBack(): void
   onSaved(): void
 }) {
+  const { t } = useTranslation()
+  const S = 'settings.vendors'
   const accounts = data?.accounts[vendor.id] ?? []
   const [creds, setCreds] = useState<Record<string, CredentialForm>>({})
   const [flash, setFlash] = useState('')
@@ -294,7 +313,7 @@ function VendorDetail({
     const form = creds[accountId]
     if (!form) return
     void window.api.saveCredential(vendor.id, { id: accountId, ...form }).then(() => {
-      setFlash('已保存并生效')
+      setFlash(t(`${S}.saved`))
       setTimeout(() => setFlash(''), 2000)
       onSaved()
     })
@@ -307,19 +326,19 @@ function VendorDetail({
   return (
     <div className="page">
       <button className="back" onClick={onBack}>
-        ‹ 返回厂商列表
+        {t(`${S}.back`)}
       </button>
       <h1>
         <span className="mono big" style={{ background: vendor.color }}>
           {vendor.name.charAt(0)}
         </span>
         {vendor.name}
-        <small>{vendor.kind === 'quota' ? '套餐用量' : '账户余额'}</small>
+        <small>{vendor.kind === 'quota' ? t(`${S}.quotaUsage`) : t(`${S}.balanceUsage`)}</small>
       </h1>
       {flash && <div className="banner-ok">{flash}</div>}
 
       <section>
-        <h2>账户凭证</h2>
+        <h2>{t(`${S}.credentials`)}</h2>
         {accounts.map((a) => {
           const form = creds[a.id] ?? { name: a.name, key: '', secret: '', region: '' }
           return (
@@ -327,16 +346,16 @@ function VendorDetail({
               <div className="acc-head">
                 <strong>{a.name}</strong>
                 <span className={`badge ${a.hasKey ? 'ok' : 'todo'}`}>
-                  {a.hasKey ? '已配置' : '未配置'}
+                  {a.hasKey ? t(`${S}.configured`) : t(`${S}.notConfigured`)}
                 </span>
               </div>
               <label>
-                账户别名
+                {t(`${S}.accountAlias`)}
                 <input value={form.name} onChange={(e) => patchForm(a.id, 'name', e.target.value)} />
               </label>
               {vendor.fields.map((f) => (
                 <label key={f}>
-                  {FIELD_LABELS[f] ?? f}
+                  {t(`${S}.${FIELD_KEYS[f] ?? f}`)}
                   <input
                     type={f === 'region' ? 'text' : 'password'}
                     value={(form as unknown as Record<string, string>)[f] ?? ''}
@@ -348,30 +367,30 @@ function VendorDetail({
               ))}
               <div className="acc-actions">
                 <button className="primary" onClick={() => saveAccount(a.id)}>
-                  保存
+                  {t(`${S}.save`)}
                 </button>
               </div>
             </div>
           )
         })}
         <button className="ghost" onClick={addAccount}>
-          ＋ 添加账户
+          {t(`${S}.addAccount`)}
         </button>
       </section>
 
       <section>
-        <h2>厂商信息(来自预置定义,可在配置目录覆盖)</h2>
+        <h2>{t(`${S}.vendorInfo`)}</h2>
         <div className="row">
-          <span className="k">标识</span>
+          <span className="k">{t(`${S}.id`)}</span>
           <span>{vendor.id}</span>
         </div>
         <div className="row">
-          <span className="k">类型</span>
-          <span>{vendor.kind === 'quota' ? '套餐额度' : '账户余额'}</span>
+          <span className="k">{t(`${S}.type`)}</span>
+          <span>{vendor.kind === 'quota' ? t(`${S}.typeQuota`) : t(`${S}.typeBalance`)}</span>
         </div>
         {vendor.homepage && (
           <div className="row">
-            <span className="k">控制台</span>
+            <span className="k">{t(`${S}.console`)}</span>
             <span className="link" onClick={() => void window.api.openExternal(vendor.homepage!)}>
               {vendor.homepage}
             </span>
@@ -390,34 +409,49 @@ function DisplayPage({
   display: DisplayConfig
   onChange(patch: Partial<DisplayConfig>): void
 }) {
+  const { t } = useTranslation()
+  const S = 'settings.display'
+  const LOCALE_LABELS: Record<DisplayConfig['locale'], string> = {
+    auto: t('lang.followSystem'),
+    'zh-CN': '简体中文',
+    en: 'English'
+  }
   return (
     <div className="page">
-      <h1>显示</h1>
-      <p className="desc">文字与图标永远保持不透明,透明度只作用于卡片背景,呈现悬浮效果。</p>
+      <h1>{t(`${S}.title`)}</h1>
+      <p className="desc">{t(`${S}.desc`)}</p>
       <section>
-        <h2>展示形式</h2>
+        <h2>{t('lang.label')}</h2>
+        <div className="seg">
+          {(['auto', 'zh-CN', 'en'] as const).map((loc) => (
+            <button key={loc} className={display.locale === loc ? 'on' : ''} onClick={() => onChange({ locale: loc })}>
+              {LOCALE_LABELS[loc]}
+            </button>
+          ))}
+        </div>
+      </section>
+      <section>
+        <h2>{t(`${S}.form`)}</h2>
         <div className="seg">
           <button
             className={display.mode === 'carousel' ? 'on' : ''}
             onClick={() => onChange({ mode: 'carousel' })}
           >
-            轮播
-            <small>逐家切换,仅已配置厂商</small>
+            {t(`${S}.carousel`)}
+            <small>{t(`${S}.carouselHint`)}</small>
           </button>
-          <button
-            className={display.mode === 'list' ? 'on' : ''}
-            onClick={() => onChange({ mode: 'list' })}
-          >
-            列表
-            <small>全部已配置厂商一屏展示</small>
+          <button className={display.mode === 'list' ? 'on' : ''} onClick={() => onChange({ mode: 'list' })}>
+            {t(`${S}.list`)}
+            <small>{t(`${S}.listHint`)}</small>
           </button>
         </div>
       </section>
       <section>
-        <h2>悬浮窗</h2>
+        <h2>{t(`${S}.widget`)}</h2>
         <label>
-          背景不透明度:{Math.round(display.bgOpacity * 100)}%
-          {display.bgOpacity === 0 ? '(无背景,仅文字与图标悬浮)' : '(文字与图标保持不透明)'}
+          {display.bgOpacity === 0
+            ? t(`${S}.bgOpacity`, { pct: Math.round(display.bgOpacity * 100) }) + ' ' + t(`${S}.bgNone`)
+            : t(`${S}.bgOpacity`, { pct: Math.round(display.bgOpacity * 100) }) + ' ' + t(`${S}.bgKeepOpaque`)}
           <input
             type="range"
             min={0}
@@ -434,7 +468,7 @@ function DisplayPage({
               checked={display.alwaysOnTop}
               onChange={(e) => onChange({ alwaysOnTop: e.target.checked })}
             />
-            窗口置顶
+            {t(`${S}.alwaysOnTop`)}
           </label>
           <label className="check">
             <input
@@ -442,14 +476,14 @@ function DisplayPage({
               checked={display.clickThrough}
               onChange={(e) => onChange({ clickThrough: e.target.checked })}
             />
-            点击穿透(鼠标穿透到桌面)
+            {t(`${S}.clickThrough`)}
           </label>
         </div>
       </section>
       <section>
-        <h2>刷新与轮播</h2>
+        <h2>{t(`${S}.refreshCycle`)}</h2>
         <label>
-          轮询间隔:{Math.round(display.pollIntervalMs / 1000)} 秒(余额型厂商固定 5 分钟)
+          {t(`${S}.pollInterval`, { sec: Math.round(display.pollIntervalMs / 1000) })}
           <input
             type="range"
             min={30}
@@ -460,7 +494,7 @@ function DisplayPage({
           />
         </label>
         <label>
-          自动翻页:{display.autoCycleMs === 0 ? '关闭' : `${display.autoCycleMs / 1000} 秒`}
+          {display.autoCycleMs === 0 ? t(`${S}.autoCycleOff`) : t(`${S}.autoCycle`, { sec: display.autoCycleMs / 1000 })}
           <input
             type="range"
             min={0}
@@ -486,14 +520,14 @@ function AlertsPage({
   const a = display.alerts
   const set = (patch: Partial<DisplayConfig['alerts']>): void =>
     onChange({ alerts: { ...a, ...patch } })
+  const { t } = useTranslation()
+  const S = 'settings.alertsPage'
   return (
     <div className="page">
-      <h1>提醒</h1>
-      <p className="desc">
-        用量达到阈值时:进度条变色 → 悬浮窗气泡(点击可打开设置)→ 系统通知;同一周期恢复前不会重复提醒。
-      </p>
+      <h1>{t(`${S}.title`)}</h1>
+      <p className="desc">{t(`${S}.desc`)}</p>
       <section>
-        <h2>提醒方式</h2>
+        <h2>{t(`${S}.ways`)}</h2>
         <div className="check-row">
           <label className="check">
             <input
@@ -501,7 +535,7 @@ function AlertsPage({
               checked={a.bubble}
               onChange={(e) => set({ bubble: e.target.checked })}
             />
-            悬浮窗气泡
+            {t(`${S}.bubble`)}
           </label>
           <label className="check">
             <input
@@ -509,14 +543,14 @@ function AlertsPage({
               checked={a.notify}
               onChange={(e) => set({ notify: e.target.checked })}
             />
-            系统通知
+            {t(`${S}.notify`)}
           </label>
         </div>
       </section>
       <section>
-        <h2>阈值(套餐型,按已用百分比)</h2>
+        <h2>{t(`${S}.thresholds`)}</h2>
         <label>
-          预警阈值(变橙):{a.warnPct}%
+          {t(`${S}.warn`, { pct: a.warnPct })}
           <input
             type="range"
             min={10}
@@ -527,7 +561,7 @@ function AlertsPage({
           />
         </label>
         <label>
-          告警阈值(变红):{a.critPct}%
+          {t(`${S}.crit`, { pct: a.critPct })}
           <input
             type="range"
             min={20}
@@ -539,9 +573,9 @@ function AlertsPage({
         </label>
       </section>
       <section>
-        <h2>余额型</h2>
+        <h2>{t(`${S}.balance`)}</h2>
         <label>
-          余额下限(低于此值提示,单位随厂商币种):{a.balanceMin}
+          {t(`${S}.balanceMin`, { min: a.balanceMin })}
           <input
             type="range"
             min={1}
@@ -556,23 +590,45 @@ function AlertsPage({
   )
 }
 
-/* ── 关于页(布局参考 Clawd 的关于页:hero + 行式信息) ── */
-function AboutPage({ version }: { version: string }) {
+/* ── 关于页(布局参考 Clawd 的关于页:hero + 行式信息;含更新区) ── */
+function AboutPage({ version, updateState }: { version: string; updateState: UpdateState | null }) {
+  const { t } = useTranslation()
+  const S = 'settings.about'
+  const U = 'updater'
   const repo = 'github.com/anylink/llm-usage-widget'
+  const st = updateState?.status ?? 'idle'
+  const updateLine = (() => {
+    switch (st) {
+      case 'dev':
+        return t(`${U}.devOnly`)
+      case 'checking':
+        return t(`${U}.checking`)
+      case 'downloading':
+        return t(`${U}.downloading`, { version: updateState?.version ?? '' })
+      case 'downloaded':
+        return t(`${U}.downloaded`, { version: updateState?.version ?? '' })
+      case 'latest':
+        return t(`${U}.latest`)
+      case 'error':
+        return t(`${U}.error`, { message: updateState?.message ?? '' })
+      default:
+        return ''
+    }
+  })()
   return (
     <div className="page about">
       <div className="hero">
         <Logo />
         <h1>LLM Usage Widget</h1>
-        <p className="tagline">桌面悬浮的大模型用量仪表。</p>
+        <p className="tagline">{t(`${S}.tagline`)}</p>
       </div>
       <section>
         <div className="row">
-          <span className="k">版本</span>
+          <span className="k">{t(`${S}.version`)}</span>
           <span>v{version}</span>
         </div>
         <div className="row">
-          <span className="k">代码仓库</span>
+          <span className="k">{t(`${S}.repo`)}</span>
           <span
             className="link"
             onClick={() => void window.api.openExternal('https://github.com/anylink/llm-usage-widget')}
@@ -581,19 +637,19 @@ function AboutPage({ version }: { version: string }) {
           </span>
         </div>
         <div className="row">
-          <span className="k">开源协议</span>
-          <span>MIT-3.0 · © 2026 Apanda</span>
+          <span className="k">{t(`${S}.license`)}</span>
+          <span>{t(`${S}.licenseValue`)}</span>
         </div>
         <div className="row">
-          <span className="k">技术栈</span>
+          <span className="k">{t(`${S}.techStack`)}</span>
           <span>Electron + React + TypeScript</span>
         </div>
         <div className="row">
-          <span className="k">作者</span>
+          <span className="k">{t(`${S}.author`)}</span>
           <span>Apanda (anylink)</span>
         </div>
         <div className="row">
-          <span className="k">参考致谢</span>
+          <span className="k">{t(`${S}.credits`)}</span>
           <span>
             <span
               className="link"
@@ -611,8 +667,19 @@ function AboutPage({ version }: { version: string }) {
           </span>
         </div>
       </section>
+      <section>
+        <h2>{t(`${U}.section`)}</h2>
+        <div className="check-row" style={{ alignItems: 'center' }}>
+          <button className="ghost" onClick={() => void window.api.checkUpdate()}>
+            {st === 'downloaded' ? t(`${U}.restartInstall`) : t(`${U}.checkNow`)}
+          </button>
+          <span className="hint" style={{ marginTop: 0 }}>
+            {updateLine}
+          </span>
+        </div>
+      </section>
       <p className="hint" style={{ textAlign: 'center', marginTop: 16 }}>
-        本项目只查询各厂商官方接口,密钥仅保存在本地并加密,无任何遥测。
+        {t(`${S}.privacy`)}
       </p>
     </div>
   )

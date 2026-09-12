@@ -150,6 +150,8 @@ export interface WindowState {
 export type WidgetMode = 'carousel' | 'list'
 
 export interface DisplayConfig {
+  /** 界面语言;auto = 跟随系统 */
+  locale: 'auto' | 'zh-CN' | 'en'
   /** 背景不透明度(仅卡片背景,文字/图标永远不透明,保持悬浮感) */
   bgOpacity: number
   /** 悬浮窗展示形式:轮播(仅已配置厂商,空时显示示例)或列表(全部已配置) */
@@ -187,6 +189,16 @@ export interface AlertEvent {
   kind: EntryKind
   color: string
   at: number // epoch 秒
+}
+
+/* ── 自动更新(主进程 updater → 关于页) ── */
+
+export type UpdateStatus = 'idle' | 'dev' | 'checking' | 'downloading' | 'downloaded' | 'latest' | 'error'
+
+export interface UpdateState {
+  status: UpdateStatus
+  version?: string
+  message?: string
 }
 
 export interface SchedulerSnapshot {

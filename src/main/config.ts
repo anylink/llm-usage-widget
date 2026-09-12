@@ -36,6 +36,7 @@ function accountsPath(): string {
 
 export function defaultDisplay(): DisplayConfig {
   return {
+    locale: 'auto',
     bgOpacity: 0.9,
     mode: 'carousel',
     theme: 'dark',

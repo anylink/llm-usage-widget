@@ -29,6 +29,11 @@ const api = {
   setHeight: (height: number): Promise<boolean> => ipcRenderer.invoke('win:setHeight', height),
   encryptionAvailable: (): Promise<boolean> => ipcRenderer.invoke('env:encryptionAvailable'),
   getVersion: (): Promise<string> => ipcRenderer.invoke('app:version'),
+  checkUpdate: (): Promise<unknown> => ipcRenderer.invoke('app:checkUpdate'),
+  installUpdate: (): Promise<boolean> => ipcRenderer.invoke('app:installUpdate'),
+  onUpdateStatus: (cb: (s: unknown) => void): void => {
+    ipcRenderer.on('update:status', (_e, s) => cb(s))
+  },
   openExternal: (url: string): Promise<boolean> => ipcRenderer.invoke('app:openExternal', url)
 }
 

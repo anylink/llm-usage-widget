@@ -1,0 +1,158 @@
+{
+  "app": {
+    "name": "LLM Usage Widget",
+    "settingsTitle": "LLM Usage Widget 设置"
+  },
+  "status": {
+    "updating": "查询中…",
+    "network": "网络不可达 · 显示上次值",
+    "http": "接口异常",
+    "auth": "鉴权失败,请检查 Key",
+    "parse": "响应解析失败",
+    "business": "接口返回错误"
+  },
+  "widget": {
+    "demoQuotaVendor": "示例厂商 · 套餐",
+    "demoBalanceVendor": "示例厂商 · 余额",
+    "demoAccount": "示例",
+    "demoNote": "示例数据 · 配置任意厂商后展示真实用量",
+    "demoListNote": "示例数据 · 套餐与余额两种形态,配置任意厂商后展示真实用量",
+    "notConfigured": "未配置",
+    "justUpdated": "刚刚更新",
+    "minutesAgo": "{{count}} 分钟前更新",
+    "hoursAgo": "{{count}} 小时前更新",
+    "resetting": "即将重置",
+    "resetInDays": "{{d}}天{{h}}时后重置",
+    "resetInHours": "{{h}}时{{m}}分后重置",
+    "resetInMinutes": "{{m}}分后重置",
+    "expand": "展开",
+    "collapse": "收起",
+    "switchToList": "切换为列表",
+    "switchToCarousel": "切换为轮播",
+    "lock": "锁定位置",
+    "unlock": "解锁位置",
+    "openSettings": "进入设置",
+    "prevVendor": "上一家",
+    "nextVendor": "下一家",
+    "refreshNow": "立即刷新",
+    "pageIndicator": "{{cur}} / {{total}}",
+    "listTitle": "全部厂商 ({{count}})",
+    "listDemoTitle": "示例展示",
+    "listPartialError": "部分厂商状态异常"
+  },
+  "bubble": {
+    "clickToOpen": "点击打开设置",
+    "close": "关闭"
+  },
+  "alerts": {
+    "quotaMsg": "{{label}} 窗口已用 {{pct}}%,{{time}}重置",
+    "quotaMsgNoReset": "{{label}} 窗口已用 {{pct}}%",
+    "balanceMsg": "余额仅剩 {{value}} {{unit}},低于下限 {{min}}"
+  },
+  "tray": {
+    "toggleWidget": "显示 / 隐藏悬浮窗",
+    "clickThrough": "点击穿透",
+    "refresh": "立即刷新",
+    "settings": "打开设置",
+    "quit": "退出"
+  },
+  "lang": {
+    "label": "界面语言",
+    "followSystem": "跟随系统"
+  },
+  "settings": {
+    "nav": {
+      "vendors": "厂商配置",
+      "display": "显示",
+      "alerts": "提醒",
+      "about": "关于"
+    },
+    "encryptionWarn": "⚠ 系统加密不可用,API Key 将以明文保存在本地!",
+    "vendors": {
+      "title": "厂商配置",
+      "desc": "点击厂商进入配置页,填写后保存立即生效;每次启动会自动加载已保存的配置。",
+      "quota": "套餐",
+      "balance": "余额",
+      "accountsCount": "{{count}} 个账户",
+      "configured": "已配置",
+      "notConfigured": "未配置",
+      "defError": "厂商定义 {{file}}: {{message}}",
+      "advanced": "高级",
+      "openVendorsDir": "打开厂商配置目录(TOML 热重载)",
+      "vendorsHint": "用户目录中的同名厂商定义会覆盖内置预置 · v{{version}} · {{enc}}",
+      "encAvailable": "加密可用",
+      "encUnavailable": "加密不可用",
+      "back": "‹ 返回厂商列表",
+      "quotaUsage": "套餐用量",
+      "balanceUsage": "账户余额",
+      "credentials": "账户凭证",
+      "accountAlias": "账户别名",
+      "save": "保存",
+      "addAccount": "＋ 添加账户",
+      "saved": "已保存并生效",
+      "vendorInfo": "厂商信息(来自预置定义,可在配置目录覆盖)",
+      "id": "标识",
+      "type": "类型",
+      "typeQuota": "套餐额度",
+      "typeBalance": "账户余额",
+      "console": "控制台",
+      "fieldKey": "API Key",
+      "fieldSecret": "Secret Key (SK)",
+      "fieldRegion": "Region(区域)"
+    },
+    "display": {
+      "title": "显示",
+      "desc": "文字与图标永远保持不透明,透明度只作用于卡片背景,呈现悬浮效果。",
+      "form": "展示形式",
+      "carousel": "轮播",
+      "carouselHint": "逐家切换,仅已配置厂商",
+      "list": "列表",
+      "listHint": "全部已配置厂商一屏展示",
+      "widget": "悬浮窗",
+      "bgOpacity": "背景不透明度:{{pct}}%",
+      "bgNone": "(无背景,仅文字与图标悬浮)",
+      "bgKeepOpaque": "(文字与图标保持不透明)",
+      "alwaysOnTop": "窗口置顶",
+      "clickThrough": "点击穿透(鼠标穿透到桌面)",
+      "refreshCycle": "刷新与轮播",
+      "pollInterval": "轮询间隔:{{sec}} 秒(余额型厂商固定 5 分钟)",
+      "autoCycleOff": "自动翻页:关闭",
+      "autoCycle": "自动翻页:{{sec}} 秒"
+    },
+    "alertsPage": {
+      "title": "提醒",
+      "desc": "用量达到阈值时:进度条变色 → 悬浮窗气泡(点击可打开设置)→ 系统通知;同一周期恢复前不会重复提醒。",
+      "ways": "提醒方式",
+      "bubble": "悬浮窗气泡",
+      "notify": "系统通知",
+      "thresholds": "阈值(套餐型,按已用百分比)",
+      "warn": "预警阈值(变橙):{{pct}}%",
+      "crit": "告警阈值(变红):{{pct}}%",
+      "balance": "余额型",
+      "balanceMin": "余额下限(低于此值提示,单位随厂商币种):{{min}}"
+    },
+    "about": {
+      "tagline": "桌面悬浮的大模型用量仪表。",
+      "version": "版本",
+      "repo": "代码仓库",
+      "license": "开源协议",
+      "licenseValue": "MIT · © 2026 Apanda",
+      "techStack": "技术栈",
+      "author": "作者",
+      "credits": "参考致谢",
+      "privacy": "本项目只查询各厂商官方接口,密钥仅保存在本地并加密,无任何遥测。"
+    }
+  },
+  "updater": {
+    "section": "更新",
+    "checkNow": "检查更新",
+    "restartInstall": "重启并安装",
+    "checking": "正在检查更新…",
+    "latest": "已是最新版本",
+    "downloading": "发现新版本 v{{version}},正在下载…",
+    "downloaded": "新版本 v{{version}} 已就绪,重启应用后生效",
+    "error": "检查更新失败:{{message}}",
+    "devOnly": "开发模式运行,不检查更新",
+    "downloadedTitle": "更新已就绪"
+  }
+}

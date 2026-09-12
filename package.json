@@ -25,8 +25,11 @@
     "vite": "^7.0.0"
   },
   "dependencies": {
+    "electron-updater": "^6.8.9",
+    "i18next": "^26.4.2",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
+    "react-i18next": "^17.0.13",
     "smol-toml": "^1.8.0"
   },
   "allowScripts": {
