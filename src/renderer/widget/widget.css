@@ -41,7 +41,9 @@ body,
   display: flex;
   flex-direction: column;
   background: rgb(var(--bg-rgb) / var(--bg-alpha));
-  border: 1px solid var(--bg-border);
+  /* 边框透明度由 Widget 按背景透明度动态写入:背景越透,边框越清晰,
+     全透明时仍有一圈细边约束区域(类似 Win11 桌面框选的样式) */
+  border: 1px solid rgb(255 255 255 / var(--border-alpha, 0.08));
   border-radius: 14px;
   padding: 10px 12px;
   /* 不加 box-shadow:透明窗口上阴影会画到桌面上且被窗口矩形直角裁切,

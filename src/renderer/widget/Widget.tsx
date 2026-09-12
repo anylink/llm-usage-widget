@@ -279,8 +279,12 @@ export function Widget() {
   // 背景接近全透明时,文字直接贴桌面,自动加描边阴影保证浅色壁纸下可读
   const textShadow =
     display.bgOpacity < 0.3 ? '0 1px 2px rgba(0,0,0,0.9), 0 0 1px rgba(0,0,0,0.9)' : 'none'
+  // 边框随背景透明度反向增强:背景全透时边框最清晰(Win11 框选样式),不透明时极淡
+  const borderAlpha =
+    display.bgOpacity >= 0.5 ? 0.08 : 0.08 + (1 - display.bgOpacity / 0.5) * 0.32
   const rootStyle = {
     ['--bg-alpha']: String(display.bgOpacity),
+    ['--border-alpha']: String(Math.round(borderAlpha * 100) / 100),
     textShadow
   } as React.CSSProperties
 
