@@ -78,6 +78,76 @@ function Monogram({ name, color }: { name: string; color: string }) {
   )
 }
 
+/* 顶部工具条小图标(线性,跟随文字色) */
+function TIcon({ d }: { d: string }) {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d={d} />
+    </svg>
+  )
+}
+
+const ICONS = {
+  collapseUp: 'M6 15l6-6 6 6',
+  collapseDown: 'M6 9l6 6 6-6',
+  toList: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
+  toCarousel: 'M9 9h11v11H9zM5 15V5a2 2 0 0 1 2-2h10',
+  lock: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4',
+  unlock: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 7.9-.9',
+  gear: 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM4.6 12a7.4 7.4 0 0 1 .1-1.2L2.8 9.3l2-3.4 1.9.8a7.4 7.4 0 0 1 2-1.2L9 3.4h6l.3 2.1a7.4 7.4 0 0 1 2 1.2l1.9-.8 2 3.4-1.9 1.5a7.4 7.4 0 0 1 0 2.4l1.9 1.5-2 3.4-1.9-.8a7.4 7.4 0 0 1-2 1.2L15 20.6H9l-.3-2.1a7.4 7.4 0 0 1-2-1.2l-1.9.8-2-3.4 1.9-1.5a7.4 7.4 0 0 1-.1-1.2z'
+}
+
+/* 顶部工具条:收起/切换方式/标题/锁定/设置 */
+function Toolbar({
+  display,
+  onPatch,
+  onOpenSettings
+}: {
+  display: DisplayConfig
+  onPatch(patch: Partial<DisplayConfig>): void
+  onOpenSettings(): void
+}) {
+  const collapsed = display.collapsed
+  return (
+    <div className="toolbar drag">
+      <button
+        className="tbtn no-drag"
+        title={collapsed ? '展开' : '收起'}
+        onClick={() => onPatch({ collapsed: !collapsed })}
+      >
+        <TIcon d={collapsed ? ICONS.collapseDown : ICONS.collapseUp} />
+      </button>
+      <button
+        className="tbtn no-drag"
+        title={display.mode === 'carousel' ? '切换为列表' : '切换为轮播'}
+        onClick={() => onPatch({ mode: display.mode === 'carousel' ? 'list' : 'carousel' })}
+      >
+        <TIcon d={display.mode === 'carousel' ? ICONS.toList : ICONS.toCarousel} />
+      </button>
+      <span className="t-title">LLM Usage Widget</span>
+      <button
+        className={`tbtn no-drag ${display.locked ? 't-on' : ''}`}
+        title={display.locked ? '解锁位置' : '锁定位置'}
+        onClick={() => onPatch({ locked: !display.locked })}
+      >
+        <TIcon d={display.locked ? ICONS.lock : ICONS.unlock} />
+      </button>
+      <button className="tbtn no-drag" title="进入设置" onClick={onOpenSettings}>
+        <TIcon d={ICONS.gear} />
+      </button>
+    </div>
+  )
+}
+
 /* 单卡片(轮播模式与示例共用) */
 function Card({
   entry,
@@ -272,7 +342,7 @@ export function Widget() {
       lastFitRef.current = h
       void window.api.setHeight(h)
     }
-  }, [display?.mode, display?.bgOpacity, snapshot?.dataGen, page])
+  }, [display?.mode, display?.collapsed, display?.bgOpacity, snapshot?.dataGen, page])
 
   if (!display) return <div className="root" />
 
@@ -291,90 +361,47 @@ export function Widget() {
   const entries = snapshot?.entries ?? []
   const configured = entries.filter((e) => e.status !== 'no-key')
 
-  // 全部未配置:示例展示(轮播显单卡片;列表显套餐+余额两行)
-  if (configured.length === 0) {
-    const demoHandle = (
-      <div
-        className="resize-handle no-drag"
-        onMouseDown={(e) => {
-          e.preventDefault()
-          let lastX = e.screenX
-          let lastY = e.screenY
-          const move = (ev: MouseEvent): void => {
-            void window.api.resizeWidget(ev.screenX - lastX, ev.screenY - lastY)
-            lastX = ev.screenX
-            lastY = ev.screenY
-          }
-          const up = (): void => {
-            window.removeEventListener('mousemove', move)
-            window.removeEventListener('mouseup', up)
-          }
-          window.addEventListener('mousemove', move)
-          window.addEventListener('mouseup', up)
-        }}
-      />
-    )
-    if (display.mode === 'list') {
-      return (
-        <div
-          className="root"
-          style={rootStyle}
-        >
-          <ListMode entries={[demoEntry(), demoBalanceEntry()]} display={display} isDemo />
-          {demoHandle}
-        </div>
-      )
-    }
-    return (
-      <div
-        className="root"
-        style={rootStyle}
-      >
-        <Card entry={demoEntry()} display={display} isDemo footLeft="未配置" />
-        {demoHandle}
-      </div>
-    )
+  const patchDisplay = (patch: Partial<DisplayConfig>): void => {
+    void window.api.setDisplay(patch).then((d) => setDisplay(d as DisplayConfig))
   }
 
-  // 列表模式
-  if (display.mode === 'list') {
-    return (
-      <div
-        className="root"
-        style={rootStyle}
-      >
-        <ListMode entries={configured} display={display} />
-        <div
-          className="resize-handle no-drag"
-          onMouseDown={(e) => {
-            e.preventDefault()
-            let lastX = e.screenX
-            let lastY = e.screenY
-            const move = (ev: MouseEvent): void => {
-              void window.api.resizeWidget(ev.screenX - lastX, ev.screenY - lastY)
-              lastX = ev.screenX
-              lastY = ev.screenY
-            }
-            const up = (): void => {
-              window.removeEventListener('mousemove', move)
-              window.removeEventListener('mouseup', up)
-            }
-            window.addEventListener('mousemove', move)
-            window.addEventListener('mouseup', up)
-          }}
-        />
-      </div>
-    )
-  }
-
-  // 轮播模式(仅已配置厂商)
-  const count = configured.length
-  const entry = configured[page % count]
-  return (
+  const resizeHandle = (
     <div
-      className="root"
-      style={rootStyle}
-    >
+      className="resize-handle no-drag"
+      onMouseDown={(e) => {
+        e.preventDefault()
+        let lastX = e.screenX
+        let lastY = e.screenY
+        const move = (ev: MouseEvent): void => {
+          void window.api.resizeWidget(ev.screenX - lastX, ev.screenY - lastY)
+          lastX = ev.screenX
+          lastY = ev.screenY
+        }
+        const up = (): void => {
+          window.removeEventListener('mousemove', move)
+          window.removeEventListener('mouseup', up)
+        }
+        window.addEventListener('mousemove', move)
+        window.addEventListener('mouseup', up)
+      }}
+    />
+  )
+
+  // 各形态内容(全部未配置时用示例数据演示)
+  let body: React.ReactNode
+  if (configured.length === 0) {
+    body =
+      display.mode === 'list' ? (
+        <ListMode entries={[demoEntry(), demoBalanceEntry()]} display={display} isDemo />
+      ) : (
+        <Card entry={demoEntry()} display={display} isDemo footLeft="未配置" />
+      )
+  } else if (display.mode === 'list') {
+    body = <ListMode entries={configured} display={display} />
+  } else {
+    const count = configured.length
+    const entry = configured[page % count]
+    body = (
       <Card
         entry={entry}
         display={display}
@@ -397,25 +424,14 @@ export function Widget() {
           </>
         }
       />
-      <div
-        className="resize-handle no-drag"
-        onMouseDown={(e) => {
-          e.preventDefault()
-          let lastX = e.screenX
-          let lastY = e.screenY
-          const move = (ev: MouseEvent): void => {
-            void window.api.resizeWidget(ev.screenX - lastX, ev.screenY - lastY)
-            lastX = ev.screenX
-            lastY = ev.screenY
-          }
-          const up = (): void => {
-            window.removeEventListener('mousemove', move)
-            window.removeEventListener('mouseup', up)
-          }
-          window.addEventListener('mousemove', move)
-          window.addEventListener('mouseup', up)
-        }}
-      />
+    )
+  }
+
+  return (
+    <div className={`root ${display.locked ? 'locked' : ''}`} style={rootStyle}>
+      <Toolbar display={display} onPatch={patchDisplay} onOpenSettings={() => void window.api.openSettings()} />
+      {!display.collapsed && body}
+      {resizeHandle}
     </div>
   )
 }

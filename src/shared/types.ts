@@ -159,6 +159,10 @@ export interface DisplayConfig {
   autoCycleMs: number // 卡片自动翻页间隔,0 = 关闭
   alwaysOnTop: boolean
   clickThrough: boolean
+  /** 锁定位置:禁止拖动(工具条可解锁) */
+  locked: boolean
+  /** 收起卡片内容,仅显示顶部工具条 */
+  collapsed: boolean
   widget: WindowState
   alerts: {
     warnPct: number

@@ -35,6 +35,8 @@ export function defaultDisplay(): DisplayConfig {
     autoCycleMs: 8_000,
     alwaysOnTop: true,
     clickThrough: false,
+    locked: false,
+    collapsed: false,
     widget: { width: 300 },
     alerts: { warnPct: 70, critPct: 90, balanceMin: 10, notify: true }
   }

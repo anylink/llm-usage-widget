@@ -36,6 +36,55 @@ body,
   text-shadow: none;
 }
 
+.root.locked .drag {
+  /* 锁定位置:拖动区失效,防止误拖 */
+  -webkit-app-region: no-drag;
+}
+
+/* 顶部工具条 */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 5px;
+  margin-bottom: 4px;
+  background: rgb(var(--bg-rgb) / var(--bg-alpha));
+  border: 1px solid rgb(255 255 255 / var(--border-alpha, 0.08));
+  border-radius: 9px;
+  -webkit-app-region: drag;
+}
+.tbtn {
+  -webkit-app-region: no-drag;
+  width: 21px;
+  height: 21px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.tbtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+.tbtn.t-on {
+  color: var(--accent);
+}
+.t-title {
+  flex: 1;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 4px;
+}
+
 .card {
   flex: none; /* 内容自然高度;两种模式的窗口高度都由自适应逻辑按内容设定 */
   display: flex;
