@@ -489,7 +489,30 @@ function AlertsPage({
   return (
     <div className="page">
       <h1>提醒</h1>
-      <p className="desc">用量达到阈值时,悬浮窗进度条会变为对应颜色;系统通知将在后续版本提供。</p>
+      <p className="desc">
+        用量达到阈值时:进度条变色 → 悬浮窗气泡(点击可打开设置)→ 系统通知;同一周期恢复前不会重复提醒。
+      </p>
+      <section>
+        <h2>提醒方式</h2>
+        <div className="check-row">
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={a.bubble}
+              onChange={(e) => set({ bubble: e.target.checked })}
+            />
+            悬浮窗气泡
+          </label>
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={a.notify}
+              onChange={(e) => set({ notify: e.target.checked })}
+            />
+            系统通知
+          </label>
+        </div>
+      </section>
       <section>
         <h2>阈值(套餐型,按已用百分比)</h2>
         <label>

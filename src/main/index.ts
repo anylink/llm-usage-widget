@@ -1,8 +1,9 @@
 /* 主进程入口:单实例、窗口、托盘、调度器、IPC 组装 */
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, Notification } from 'electron'
 import { createPluginRegistry } from './engine/plugins'
 import { loadVendors, watchVendors, userVendorsDir } from './engine/loader'
 import { Scheduler } from './scheduler'
+import { AlertManager } from './alerts'
 import {
   ensureDefaultAccounts,
   isEncryptionAvailable,
@@ -32,7 +33,20 @@ function bootstrap(): void {
     const loaded = loadVendors()
     const accounts = ensureDefaultAccounts(loaded.vendors)
 
+    // ── 阈值提醒 L2/L3:调度器每轮刷新后评估,升级才发事件 ──
+    const alertManager = new AlertManager()
     const scheduler = new Scheduler(createPluginRegistry(), displayCfg, (snapshot) => {
+      for (const ev of alertManager.evaluate(snapshot.entries, displayCfg.alerts)) {
+        if (displayCfg.alerts.bubble) {
+          const w = windows.widget
+          if (w && !w.isDestroyed() && w.isVisible()) w.webContents.send('alerts:bubble', ev)
+        }
+        if (displayCfg.alerts.notify && Notification.isSupported()) {
+          const n = new Notification({ title: ev.title, body: ev.message })
+          n.on('click', () => windows.openSettings())
+          n.show()
+        }
+      }
       for (const w of BrowserWindow.getAllWindows()) {
         if (!w.isDestroyed()) w.webContents.send('usage:updated', snapshot)
       }

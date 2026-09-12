@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import type { DisplayConfig, QuotaWindow, SchedulerSnapshot, UsageEntry } from '@shared/types'
+import React, { useEffect, useRef, useState } from 'react'
+import type { AlertEvent, DisplayConfig, QuotaWindow, SchedulerSnapshot, UsageEntry } from '@shared/types'
 
 const STATUS_TEXT: Record<string, string> = {
   ok: '',
@@ -308,16 +308,27 @@ function ListMode({
 export function Widget() {
   const [snapshot, setSnapshot] = useState<SchedulerSnapshot | null>(null)
   const [display, setDisplay] = useState<DisplayConfig | null>(null)
+  const [bubble, setBubble] = useState<AlertEvent | null>(null)
   const [page, setPage] = useState(0)
   const [, setTick] = useState(0) // 倒计时每秒重绘
+  const bubbleTimer = useRef<number | undefined>(undefined)
 
   useEffect(() => {
     void window.api.getSnapshot().then((s) => setSnapshot(s as SchedulerSnapshot))
     void window.api.getDisplay().then((d) => setDisplay(d as DisplayConfig))
     window.api.onUsageUpdated((s) => setSnapshot(s as SchedulerSnapshot))
     window.api.onDisplayChanged((d) => setDisplay(d as DisplayConfig))
+    // L2 气泡:主进程评估出的阈值告警,8 秒自动收回;多条紧随其后时后到覆盖先到
+    window.api.onAlertBubble((ev) => {
+      setBubble(ev as AlertEvent)
+      clearTimeout(bubbleTimer.current)
+      bubbleTimer.current = window.setTimeout(() => setBubble(null), 8000)
+    })
     const t = setInterval(() => setTick((x) => x + 1), 1000)
-    return () => clearInterval(t)
+    return () => {
+      clearInterval(t)
+      clearTimeout(bubbleTimer.current)
+    }
   }, [])
 
   // 自动翻页(仅轮播)
@@ -431,6 +442,26 @@ export function Widget() {
     <div className={`root ${display.locked ? 'locked' : ''}`} style={rootStyle}>
       <Toolbar display={display} onPatch={patchDisplay} onOpenSettings={() => void window.api.openSettings()} />
       {!display.collapsed && body}
+      {bubble && (
+        <div
+          className={`bubble bubble-${bubble.level} no-drag`}
+          title="点击打开设置"
+          onClick={() => void window.api.openSettings()}
+        >
+          <span className="bubble-dot" style={{ background: bubble.color }} />
+          <span className="bubble-text">{bubble.message}</span>
+          <button
+            className="bubble-x"
+            title="关闭"
+            onClick={(e) => {
+              e.stopPropagation()
+              setBubble(null)
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
       {resizeHandle}
     </div>
   )

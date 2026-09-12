@@ -29,6 +29,7 @@ body,
 }
 
 .root {
+  position: relative; /* 气泡的定位基准 */
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -353,4 +354,58 @@ body,
   width: 14px;
   height: 14px;
   cursor: nwse-resize;
+}
+
+/* L2 阈值提醒气泡:叠加在工具条下方,不参与布局(避免干扰高度自适应);
+   同卡片,不用 box-shadow(透明窗口上会画出灰晕和直角裁切) */
+.bubble {
+  position: absolute;
+  top: 34px;
+  left: 6px;
+  right: 6px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 9px;
+  border-radius: 10px;
+  background: rgb(var(--bg-rgb) / 0.97);
+  border: 1px solid var(--warn);
+  font-size: 11px;
+  color: var(--text-primary);
+  cursor: pointer;
+  animation: bubble-in 0.18s ease;
+}
+.bubble-crit {
+  border-color: var(--danger);
+}
+.bubble-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+.bubble-text {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.bubble-x {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.bubble-x:hover {
+  color: var(--text-primary);
+}
+@keyframes bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
 }

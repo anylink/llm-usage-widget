@@ -168,8 +168,25 @@ export interface DisplayConfig {
     warnPct: number
     critPct: number
     balanceMin: number
+    /** L2 悬浮窗气泡 */
+    bubble: boolean
+    /** L3 系统通知 */
     notify: boolean
   }
+}
+
+/** 一次阈值告警事件(主进程评估后推给气泡/系统通知) */
+export interface AlertEvent {
+  accountId: string
+  vendorId: string
+  /** 通知标题:厂商名(多账户时附账户名) */
+  title: string
+  /** 正文(主进程已拼好,含窗口/百分比/重置时间或余额) */
+  message: string
+  level: 'warn' | 'crit'
+  kind: EntryKind
+  color: string
+  at: number // epoch 秒
 }
 
 export interface SchedulerSnapshot {

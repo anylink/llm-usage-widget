@@ -12,6 +12,9 @@ const api = {
   onDisplayChanged: (cb: (cfg: unknown) => void): void => {
     ipcRenderer.on('display:changed', (_e, cfg) => cb(cfg))
   },
+  onAlertBubble: (cb: (ev: unknown) => void): void => {
+    ipcRenderer.on('alerts:bubble', (_e, ev) => cb(ev))
+  },
   getVendorList: (): Promise<unknown> => ipcRenderer.invoke('config:vendorList'),
   openVendorsDir: (): Promise<boolean> => ipcRenderer.invoke('config:openVendorsDir'),
   getCredential: (vendorId: string, accountId: string): Promise<unknown> =>
