@@ -42,17 +42,25 @@ body,
   -webkit-app-region: no-drag;
 }
 
-/* 顶部工具条 */
+/* 顶部工具行:卡片内部第一行,与内容同一区域;平时整行是拖动区,
+   鼠标移到卡片顶部时按钮/标题渐显,移开即隐 */
 .toolbar {
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 3px 5px;
+  padding: 0 2px;
   margin-bottom: 4px;
-  background: rgb(var(--bg-rgb) / var(--bg-alpha));
-  border: 1px solid rgb(255 255 255 / var(--border-alpha, 0.08));
-  border-radius: 9px;
+  min-height: 22px;
   -webkit-app-region: drag;
+}
+.toolbar .tbtn,
+.toolbar .t-title {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.toolbar:hover .tbtn,
+.toolbar:hover .t-title {
+  opacity: 1;
 }
 .tbtn {
   -webkit-app-region: no-drag;
@@ -102,6 +110,17 @@ body,
 
 .drag {
   -webkit-app-region: drag;
+}
+
+/* 收起态:仅剩标题的紧凑卡片(标题常显避免空壳,按钮仍需悬停顶部) */
+.card.collapsed-card {
+  padding: 5px 8px;
+}
+.collapsed-card .toolbar {
+  margin-bottom: 0;
+}
+.collapsed-card .t-title {
+  opacity: 1;
 }
 .no-drag,
 .no-drag * {
@@ -356,7 +375,7 @@ body,
   cursor: nwse-resize;
 }
 
-/* L2 阈值提醒气泡:叠加在工具条下方,不参与布局(避免干扰高度自适应);
+/* L2 阈值提醒气泡:叠加在卡片顶部(工具行下方的内容区),不参与布局(避免干扰高度自适应);
    同卡片,不用 box-shadow(透明窗口上会画出灰晕和直角裁切) */
 .bubble {
   position: absolute;

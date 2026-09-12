@@ -106,7 +106,7 @@ const ICONS = {
   gear: 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM4.6 12a7.4 7.4 0 0 1 .1-1.2L2.8 9.3l2-3.4 1.9.8a7.4 7.4 0 0 1 2-1.2L9 3.4h6l.3 2.1a7.4 7.4 0 0 1 2 1.2l1.9-.8 2 3.4-1.9 1.5a7.4 7.4 0 0 1 0 2.4l1.9 1.5-2 3.4-1.9-.8a7.4 7.4 0 0 1-2 1.2L15 20.6H9l-.3-2.1a7.4 7.4 0 0 1-2-1.2l-1.9.8-2-3.4 1.9-1.5a7.4 7.4 0 0 1-.1-1.2z'
 }
 
-/* 顶部工具条:收起/切换方式/标题/锁定/设置 */
+/* 顶部工具行:与内容同卡片;平时整行是拖动区,鼠标移到卡片顶部时按钮渐显 */
 function Toolbar({
   display,
   onPatch,
@@ -148,25 +148,28 @@ function Toolbar({
   )
 }
 
-/* 单卡片(轮播模式与示例共用) */
+/* 单卡片(轮播模式与示例共用);toolbar 为卡片内部顶端的工具行 */
 function Card({
   entry,
   display,
   isDemo,
   footLeft,
-  extraHead
+  extraHead,
+  toolbar
 }: {
   entry: UsageEntry
   display: DisplayConfig
   isDemo?: boolean
   footLeft?: string
   extraHead?: React.ReactNode
+  toolbar?: React.ReactNode
 }) {
   const primary = entry.windows?.[0]
   const alerts = display.alerts
   const errText = STATUS_TEXT[entry.status] ?? ''
   return (
     <div className="card" style={{ ['--accent' as string]: entry.color }}>
+      {toolbar}
       <div className="head drag">
         <Monogram name={entry.vendorName} color={entry.color} />
         <span className="name" title={`${entry.vendorName} · ${entry.accountName}`}>
@@ -234,15 +237,18 @@ function Card({
 function ListMode({
   entries,
   display,
-  isDemo
+  isDemo,
+  toolbar
 }: {
   entries: UsageEntry[]
   display: DisplayConfig
   isDemo?: boolean
+  toolbar?: React.ReactNode
 }) {
   const alerts = display.alerts
   return (
     <div className="card list" id="list-card">
+      {toolbar}
       <div className="head drag">
         <span className="name">{isDemo ? '示例展示' : `全部厂商 (${entries.length})`}</span>
       </div>
@@ -404,17 +410,21 @@ export function Widget() {
     />
   )
 
+  const toolbar = (
+    <Toolbar display={display} onPatch={patchDisplay} onOpenSettings={() => void window.api.openSettings()} />
+  )
+
   // 各形态内容(全部未配置时用示例数据演示)
   let body: React.ReactNode
   if (configured.length === 0) {
     body =
       display.mode === 'list' ? (
-        <ListMode entries={[demoEntry(), demoBalanceEntry()]} display={display} isDemo />
+        <ListMode entries={[demoEntry(), demoBalanceEntry()]} display={display} isDemo toolbar={toolbar} />
       ) : (
-        <Card entry={demoEntry()} display={display} isDemo footLeft="未配置" />
+        <Card entry={demoEntry()} display={display} isDemo footLeft="未配置" toolbar={toolbar} />
       )
   } else if (display.mode === 'list') {
-    body = <ListMode entries={configured} display={display} />
+    body = <ListMode entries={configured} display={display} toolbar={toolbar} />
   } else {
     const count = configured.length
     const entry = configured[page % count]
@@ -422,6 +432,7 @@ export function Widget() {
       <Card
         entry={entry}
         display={display}
+        toolbar={toolbar}
         footLeft={count > 1 ? `${(page % count) + 1} / ${count}` : ''}
         extraHead={
           <>
@@ -446,8 +457,8 @@ export function Widget() {
 
   return (
     <div className={`root ${display.locked ? 'locked' : ''}`} style={rootStyle}>
-      <Toolbar display={display} onPatch={patchDisplay} onOpenSettings={() => void window.api.openSettings()} />
-      {!display.collapsed && body}
+      {/* 收起时:仅剩标题常显的紧凑卡片,鼠标移入顶部再显按钮 */}
+      {display.collapsed ? <div className="card collapsed-card">{toolbar}</div> : body}
       {bubble && (
         <div
           className={`bubble bubble-${bubble.level} no-drag`}
