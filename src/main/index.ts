@@ -140,6 +140,13 @@ function bootstrap(): void {
     })
     ipcMain.handle('env:encryptionAvailable', () => isEncryptionAvailable())
     ipcMain.handle('app:version', () => app.getVersion())
+    ipcMain.handle('app:openExternal', (_e, url: string) => {
+      if (typeof url === 'string' && url.startsWith('https://')) {
+        void import('electron').then(({ shell }) => shell.openExternal(url))
+        return true
+      }
+      return false
+    })
 
     // ── 生命周期 ──
     app.on('second-instance', () => {

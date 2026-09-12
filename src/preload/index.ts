@@ -24,7 +24,8 @@ const api = {
   resizeWidget: (dWidth: number, dHeight: number): Promise<boolean> =>
     ipcRenderer.invoke('win:resizeWidget', dWidth, dHeight),
   encryptionAvailable: (): Promise<boolean> => ipcRenderer.invoke('env:encryptionAvailable'),
-  getVersion: (): Promise<string> => ipcRenderer.invoke('app:version')
+  getVersion: (): Promise<string> => ipcRenderer.invoke('app:version'),
+  openExternal: (url: string): Promise<boolean> => ipcRenderer.invoke('app:openExternal', url)
 }
 
 export type Api = typeof api

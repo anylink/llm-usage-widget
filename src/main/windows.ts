@@ -85,8 +85,10 @@ export class WindowManager {
       return this.settings
     }
     const win = new BrowserWindow({
-      width: 760,
-      height: 560,
+      width: 860,
+      height: 600,
+      minWidth: 720,
+      minHeight: 500,
       title: 'LLM Usage Widget 设置',
       autoHideMenuBar: true,
       webPreferences: {

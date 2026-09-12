@@ -1,23 +1,80 @@
-/* 设置窗口样式:厂商列表 + 厂商配置两级页 */
+/* 设置窗口:左导航 + 右内容双栏布局 */
 * {
   box-sizing: border-box;
 }
 body {
   margin: 0;
   font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
-  background: #f5f6f8;
+  background: #fff;
   color: #1c1e22;
 }
+
+.app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── 左侧导航 ── */
+.sidebar {
+  width: 188px;
+  flex: none;
+  background: #f5f6f8;
+  border-right: 1px solid #e8eaee;
+  padding: 14px 10px;
+}
+.side-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #8a8f99;
+  padding: 4px 12px 14px;
+  letter-spacing: 0.2px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: #4a505c;
+  font-size: 13.5px;
+  margin-bottom: 2px;
+  user-select: none;
+}
+.nav-item:hover {
+  background: #ecedf0;
+}
+.nav-item.active {
+  background: #fff;
+  color: #1c1e22;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+.nav-item svg {
+  flex: none;
+  color: #6b7280;
+}
+.nav-item.active svg {
+  color: #4d6bfe;
+}
+
+/* ── 右侧内容 ── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  background: #fff;
+}
 .page {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 20px 16px 60px;
+  max-width: 620px;
+  padding: 26px 32px 60px;
 }
 h1 {
   font-size: 20px;
   display: flex;
   align-items: center;
   gap: 8px;
+  margin: 0 0 4px;
 }
 h1 small {
   color: #8a8f99;
@@ -25,27 +82,34 @@ h1 small {
   font-weight: 400;
 }
 h2 {
-  font-size: 14px;
-  margin: 0 0 8px;
+  font-size: 13.5px;
+  margin: 0 0 6px;
+}
+.desc {
+  color: #8a8f99;
+  font-size: 12.5px;
+  margin: 0 0 14px;
 }
 section {
   background: #fff;
   border: 1px solid #e6e8ec;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 14px 16px;
-  margin-top: 8px;
+  margin-top: 14px;
 }
 label {
   display: flex;
   flex-direction: column;
   gap: 6px;
   font-size: 13px;
-  padding: 6px 0;
+  padding: 7px 0;
 }
 input[type='range'] {
   width: 100%;
+  accent-color: #4d6bfe;
 }
-input {
+input[type='text'],
+input[type='password'] {
   padding: 8px 10px;
   border: 1px solid #d6d9e0;
   border-radius: 8px;
@@ -55,12 +119,52 @@ input:focus {
   outline: 2px solid #4d6bfe33;
   border-color: #4d6bfe;
 }
+.check-row {
+  display: flex;
+  gap: 24px;
+  padding-top: 6px;
+}
+label.check {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+input[type='checkbox'] {
+  accent-color: #4d6bfe;
+  width: 15px;
+  height: 15px;
+}
 
+/* 行式信息(关于页/厂商信息) */
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 2px;
+  border-bottom: 1px solid #f0f1f4;
+  font-size: 13.5px;
+}
+.row:last-child {
+  border-bottom: none;
+}
+.row .k {
+  color: #6b7280;
+}
+.link {
+  color: #4d6bfe;
+  cursor: pointer;
+}
+.link:hover {
+  text-decoration: underline;
+}
+
+/* 厂商列表 */
 .vendor-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 8px;
+  padding: 10px 8px;
   border-bottom: 1px solid #f0f1f4;
   font-size: 13px;
   border-radius: 8px;
@@ -74,10 +178,9 @@ input:focus {
 .vendor-row.clickable:hover {
   background: #f4f6fb;
 }
-.hint {
-  font-size: 11px;
-  color: #8a8f99;
-  line-height: 1.5;
+.chevron {
+  color: #b8bdc7;
+  font-size: 16px;
 }
 .mono {
   width: 24px;
@@ -99,7 +202,7 @@ input:focus {
 }
 .vname {
   font-weight: 600;
-  width: 170px;
+  width: 150px;
 }
 .vkind {
   width: 44px;
@@ -124,19 +227,7 @@ input:focus {
   color: #a05e00;
 }
 
-.back {
-  margin-bottom: 10px;
-  padding: 6px 12px;
-  border: 1px solid #d6d9e0;
-  border-radius: 8px;
-  background: #fff;
-  cursor: pointer;
-  font-size: 13px;
-}
-.back:hover {
-  background: #f0f2f6;
-}
-
+/* 账户卡片 */
 .account-card {
   border: 1px solid #e6e8ec;
   border-radius: 10px;
@@ -154,12 +245,28 @@ input:focus {
   display: flex;
   justify-content: flex-end;
 }
-.meta {
-  font-size: 13px;
-  color: #5b6472;
-  line-height: 1.9;
+.hint {
+  font-size: 11.5px;
+  color: #8a8f99;
+  line-height: 1.5;
 }
 
+/* 关于页 hero */
+.about .hero {
+  text-align: center;
+  padding: 26px 0 10px;
+}
+.about .hero h1 {
+  justify-content: center;
+  margin-top: 16px;
+}
+.tagline {
+  color: #8a8f99;
+  font-size: 13px;
+  margin: 4px 0 6px;
+}
+
+/* 按钮 */
 button {
   padding: 7px 14px;
   border: 1px solid #d6d9e0;
@@ -184,7 +291,13 @@ button.ghost {
   border-style: dashed;
   margin-top: 10px;
 }
-.warn {
+.back {
+  margin-bottom: 10px;
+  padding: 6px 12px;
+}
+
+/* 横幅 */
+.banner-warn {
   background: #fff7e8;
   border: 1px solid #f2ddb0;
   color: #8a5b00;
@@ -193,7 +306,7 @@ button.ghost {
   font-size: 13px;
   margin: 8px 0;
 }
-.saved {
+.banner-ok {
   background: #e5f6ec;
   border: 1px solid #b7e4c7;
   color: #1c7c3f;
@@ -201,4 +314,8 @@ button.ghost {
   border-radius: 8px;
   font-size: 13px;
   margin: 8px 0;
+}
+.content > .banner-warn {
+  margin: 12px 32px 0;
+  max-width: 556px;
 }
