@@ -29,6 +29,7 @@ function accountsPath(): string {
 export function defaultDisplay(): DisplayConfig {
   return {
     bgOpacity: 0.9,
+    mode: 'carousel',
     theme: 'dark',
     pollIntervalMs: 60_000,
     autoCycleMs: 8_000,

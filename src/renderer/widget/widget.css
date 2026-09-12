@@ -208,6 +208,90 @@ body,
   gap: 12px;
 }
 
+.demo-note {
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  border-top: 1px dashed var(--bg-border);
+  padding-top: 6px;
+}
+
+/* 列表模式 */
+.card.list {
+  gap: 0;
+}
+.list-body {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 0;
+}
+.li-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.li-row:last-child {
+  border-bottom: none;
+}
+.li-row .logo {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  font-size: 10px;
+}
+.li-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.li-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.li-acc {
+  font-weight: 400;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+.li-bar {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.li-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease, background 0.3s;
+}
+.li-bar-flat {
+  opacity: 0.4;
+}
+.li-val {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+.li-val em {
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+.li-err {
+  color: var(--warn);
+}
+
 .resize-handle {
   position: fixed;
   right: 2px;

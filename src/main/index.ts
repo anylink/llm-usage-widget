@@ -138,6 +138,15 @@ function bootstrap(): void {
       w.setSize(width, height)
       return true
     })
+    // 列表模式:按内容高度自适应窗口高度
+    ipcMain.handle('win:setHeight', (_e, height: number) => {
+      const w = windows.widget
+      if (!w || w.isDestroyed()) return false
+      const b = w.getBounds()
+      const h = Math.min(700, Math.max(120, Math.round(height)))
+      w.setSize(b.width, h)
+      return true
+    })
     ipcMain.handle('env:encryptionAvailable', () => isEncryptionAvailable())
     ipcMain.handle('app:version', () => app.getVersion())
     ipcMain.handle('app:openExternal', (_e, url: string) => {

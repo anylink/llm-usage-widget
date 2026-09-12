@@ -23,6 +23,7 @@ const api = {
   openSettings: (): Promise<boolean> => ipcRenderer.invoke('win:openSettings'),
   resizeWidget: (dWidth: number, dHeight: number): Promise<boolean> =>
     ipcRenderer.invoke('win:resizeWidget', dWidth, dHeight),
+  setHeight: (height: number): Promise<boolean> => ipcRenderer.invoke('win:setHeight', height),
   encryptionAvailable: (): Promise<boolean> => ipcRenderer.invoke('env:encryptionAvailable'),
   getVersion: (): Promise<string> => ipcRenderer.invoke('app:version'),
   openExternal: (url: string): Promise<boolean> => ipcRenderer.invoke('app:openExternal', url)

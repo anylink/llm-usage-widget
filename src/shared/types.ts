@@ -147,9 +147,13 @@ export interface WindowState {
   height?: number
 }
 
+export type WidgetMode = 'carousel' | 'list'
+
 export interface DisplayConfig {
   /** 背景不透明度(仅卡片背景,文字/图标永远不透明,保持悬浮感) */
   bgOpacity: number
+  /** 悬浮窗展示形式:轮播(仅已配置厂商,空时显示示例)或列表(全部已配置) */
+  mode: WidgetMode
   theme: string
   pollIntervalMs: number
   autoCycleMs: number // 卡片自动翻页间隔,0 = 关闭

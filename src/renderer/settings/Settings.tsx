@@ -395,6 +395,25 @@ function DisplayPage({
       <h1>显示</h1>
       <p className="desc">文字与图标永远保持不透明,透明度只作用于卡片背景,呈现悬浮效果。</p>
       <section>
+        <h2>展示形式</h2>
+        <div className="seg">
+          <button
+            className={display.mode === 'carousel' ? 'on' : ''}
+            onClick={() => onChange({ mode: 'carousel' })}
+          >
+            轮播
+            <small>逐家切换,仅已配置厂商</small>
+          </button>
+          <button
+            className={display.mode === 'list' ? 'on' : ''}
+            onClick={() => onChange({ mode: 'list' })}
+          >
+            列表
+            <small>全部已配置厂商一屏展示</small>
+          </button>
+        </div>
+      </section>
+      <section>
         <h2>悬浮窗</h2>
         <label>
           背景不透明度:{Math.round(display.bgOpacity * 100)}%
