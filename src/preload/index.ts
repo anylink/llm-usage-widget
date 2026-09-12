@@ -28,8 +28,8 @@ const api = {
   addAccount: (vendorId: string, name: string): Promise<string> =>
     ipcRenderer.invoke('config:addAccount', vendorId, name),
   openSettings: (): Promise<boolean> => ipcRenderer.invoke('win:openSettings'),
-  resizeWidget: (dWidth: number, dHeight: number): Promise<boolean> =>
-    ipcRenderer.invoke('win:resizeWidget', dWidth, dHeight),
+  resizeWidget: (d: { dW: number; dH: number; dX: number; dY: number }): Promise<boolean> =>
+    ipcRenderer.invoke('win:resizeWidget', d),
   setHeight: (height: number): Promise<boolean> => ipcRenderer.invoke('win:setHeight', height),
   encryptionAvailable: (): Promise<boolean> => ipcRenderer.invoke('env:encryptionAvailable'),
   getVersion: (): Promise<string> => ipcRenderer.invoke('app:version'),

@@ -1,6 +1,7 @@
 /* 窗口管理:悬浮窗(无边框透明置顶)+ 设置窗(常规) */
 import { BrowserWindow, screen } from 'electron'
 import path from 'node:path'
+import { snapToEdge } from '@shared/geom'
 import { loadDisplay, saveDisplay } from './config'
 
 /** dev 模式走 electron-vite dev server,build 后走 out/renderer 静态文件 */
@@ -51,7 +52,7 @@ export class WindowManager {
     win.once('ready-to-show', () => win.show())
     this.applyClickThrough(win, display.clickThrough)
 
-    // 位置/尺寸持久化(防抖)
+    // 位置/尺寸持久化(防抖)+ 贴边吸附(拖动停 220ms 后判定,避免与拖拽抢位)
     const persist = (): void => {
       clearTimeout(this.saveTimer)
       this.saveTimer = setTimeout(() => {
@@ -61,7 +62,16 @@ export class WindowManager {
         saveDisplay(cfg)
       }, 600)
     }
-    win.on('moved', persist)
+    let snapTimer: NodeJS.Timeout | undefined
+    win.on('moved', () => {
+      persist()
+      clearTimeout(snapTimer)
+      snapTimer = setTimeout(() => {
+        const b = win.getBounds()
+        const snapped = snapToEdge(b, screen.getDisplayMatching(b).workArea)
+        if (snapped) win.setPosition(snapped.x, snapped.y)
+      }, 220)
+    })
     win.on('resized', persist)
     win.on('close', (e) => {
       // 关闭 = 隐藏,托盘"退出"才真正退出

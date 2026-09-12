@@ -444,27 +444,49 @@ export function Widget() {
     void window.api.setDisplay(patch).then((d) => setDisplay(d as DisplayConfig))
   }
 
-  const resizeHandle = (
-    <div
-      className="resize-handle no-drag"
-      onMouseDown={(e) => {
-        e.preventDefault()
-        let lastX = e.screenX
-        let lastY = e.screenY
-        const move = (ev: MouseEvent): void => {
-          void window.api.resizeWidget(ev.screenX - lastX, ev.screenY - lastY)
-          lastX = ev.screenX
-          lastY = ev.screenY
+/* 四边 + 右下角缩放手柄(自绘;左/上边拖动 = 移动该边,另一侧保持不动) */
+function ResizeHandles(): React.ReactElement {
+  const start =
+    (dir: string) =>
+    (e: React.MouseEvent): void => {
+      e.preventDefault()
+      let lastX = e.screenX
+      let lastY = e.screenY
+      const move = (ev: MouseEvent): void => {
+        const dx = ev.screenX - lastX
+        const dy = ev.screenY - lastY
+        lastX = ev.screenX
+        lastY = ev.screenY
+        const d = { dW: 0, dH: 0, dX: 0, dY: 0 }
+        if (dir.includes('e')) d.dW = dx
+        if (dir.includes('s')) d.dH = dy
+        if (dir.includes('w')) {
+          d.dX = dx
+          d.dW = -dx
         }
-        const up = (): void => {
-          window.removeEventListener('mousemove', move)
-          window.removeEventListener('mouseup', up)
+        if (dir.includes('n')) {
+          d.dY = dy
+          d.dH = -dy
         }
-        window.addEventListener('mousemove', move)
-        window.addEventListener('mouseup', up)
-      }}
-    />
+        void window.api.resizeWidget(d)
+      }
+      const up = (): void => {
+        window.removeEventListener('mousemove', move)
+        window.removeEventListener('mouseup', up)
+      }
+      window.addEventListener('mousemove', move)
+      window.addEventListener('mouseup', up)
+    }
+  return (
+    <>
+      <div className="rz rz-e no-drag" onMouseDown={start('e')} />
+      <div className="rz rz-w no-drag" onMouseDown={start('w')} />
+      <div className="rz rz-s no-drag" onMouseDown={start('s')} />
+      <div className="rz rz-n no-drag" onMouseDown={start('n')} />
+      <div className="rz rz-se no-drag" onMouseDown={start('se')} />
+    </>
   )
+}
 
   const toolbar = (
     <Toolbar display={display} onPatch={patchDisplay} onOpenSettings={() => void window.api.openSettings()} />
@@ -535,7 +557,7 @@ export function Widget() {
           </button>
         </div>
       )}
-      {resizeHandle}
+      <ResizeHandles />
     </div>
   )
 }

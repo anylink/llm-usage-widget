@@ -179,13 +179,20 @@ function bootstrap(): void {
       windows.openSettings(i18n.t('app.settingsTitle'))
       return true
     })
-    ipcMain.handle('win:resizeWidget', (_e, dWidth: number, dHeight: number) => {
+    // 缩放:右/下/角直接改宽高;左/上边先移位置再收宽度(高度仅当下生效,自适应逻辑仍会纠正)
+    ipcMain.handle('win:resizeWidget', (_e, d: { dW: number; dH: number; dX: number; dY: number }) => {
       const w = windows.widget
       if (!w || w.isDestroyed()) return false
       const b = w.getBounds()
-      const width = Math.min(480, Math.max(220, Math.round(b.width + dWidth)))
-      const height = Math.max(120, Math.round(b.height + dHeight))
-      w.setSize(width, height)
+      let x = b.x
+      let y = b.y
+      let width = d.dX ? b.width - d.dX : b.width + (d.dW ?? 0)
+      let height = d.dY ? b.height - d.dY : b.height + (d.dH ?? 0)
+      if (d.dX) x = b.x + d.dX
+      if (d.dY) y = b.y + d.dY
+      width = Math.min(480, Math.max(220, Math.round(width)))
+      height = Math.min(700, Math.max(36, Math.round(height)))
+      w.setBounds({ x: Math.round(x), y: Math.round(y), width, height })
       return true
     })
     // 高度自适应:按内容高度设定窗口(收起时仅工具条,约 40px,故下限 36)

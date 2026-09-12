@@ -433,10 +433,42 @@ body,
   color: var(--warn);
 }
 
-.resize-handle {
+/* 四边 + 右下角缩放手柄:透明自绘热区,占窗口边缘 6px/角 14px */
+.rz {
   position: fixed;
-  right: 2px;
-  bottom: 2px;
+  z-index: 30;
+}
+.rz-e {
+  right: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 6px;
+  cursor: ew-resize;
+}
+.rz-w {
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 6px;
+  cursor: ew-resize;
+}
+.rz-s {
+  bottom: 0;
+  left: 12px;
+  right: 12px;
+  height: 6px;
+  cursor: ns-resize;
+}
+.rz-n {
+  top: 0;
+  left: 12px;
+  right: 12px;
+  height: 6px;
+  cursor: ns-resize;
+}
+.rz-se {
+  right: 0;
+  bottom: 0;
   width: 14px;
   height: 14px;
   cursor: nwse-resize;
