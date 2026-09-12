@@ -146,7 +146,8 @@ export interface WindowState {
 }
 
 export interface DisplayConfig {
-  opacity: number // 0.2 - 1
+  /** 背景不透明度(仅卡片背景,文字/图标永远不透明,保持悬浮感) */
+  bgOpacity: number
   theme: string
   pollIntervalMs: number
   autoCycleMs: number // 卡片自动翻页间隔,0 = 关闭

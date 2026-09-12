@@ -28,7 +28,7 @@ function accountsPath(): string {
 
 export function defaultDisplay(): DisplayConfig {
   return {
-    opacity: 0.92,
+    bgOpacity: 0.9,
     theme: 'dark',
     pollIntervalMs: 60_000,
     autoCycleMs: 8_000,
@@ -92,6 +92,28 @@ export function saveAccounts(accounts: AccountsFile): void {
     sealed[vendorId] = list.map((a) => ({ ...a, key: encryptSecret(a.key), secret: encryptSecret(a.secret) }))
   }
   fs.writeFileSync(accountsPath(), JSON.stringify(sealed, null, 2))
+}
+
+/** 新增或更新一个账户凭证(设置页保存入口) */
+export function upsertAccount(
+  vendorId: string,
+  account: { id: string; name: string; key?: string; secret?: string; region?: string }
+): void {
+  const stored = loadAccounts()
+  const list = stored[vendorId] ?? []
+  const idx = list.findIndex((a) => a.id === account.id)
+  if (idx >= 0) list[idx] = { ...list[idx], ...account }
+  else list.push(account)
+  stored[vendorId] = list
+  saveAccounts(stored)
+}
+
+/** 为厂商生成下一个账户 id(如 kimi-2) */
+export function nextAccountId(vendorId: string): string {
+  const list = loadAccounts()[vendorId] ?? []
+  let n = 1
+  while (list.some((a) => a.id === `${vendorId}-${n}`)) n++
+  return `${vendorId}-${n}`
 }
 
 /** 读账户(解密后),只回传指定 vendor;附带账户元信息 */

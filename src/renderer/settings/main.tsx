@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client'
-import { SettingsStub } from './SettingsStub'
+import { Settings } from './Settings'
 import './settings.css'
 
-createRoot(document.getElementById('root')!).render(<SettingsStub />)
+createRoot(document.getElementById('root')!).render(<Settings />)

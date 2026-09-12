@@ -1,6 +1,8 @@
 /* 悬浮窗主题变量:暗色默认主题;主题包(themes/*.css)可整体覆盖这些变量 */
 :root {
-  --bg: rgba(22, 24, 30, 0.88);
+  /* 背景透明度走独立变量:卡片背景半透明,文字/图标不跟随(--bg-alpha 由显示设置写入) */
+  --bg-alpha: 0.9;
+  --bg-rgb: 22, 24, 30;
   --bg-border: rgba(255, 255, 255, 0.08);
   --text-primary: #eceef2;
   --text-secondary: #9aa1ad;
@@ -36,7 +38,7 @@ body,
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: var(--bg);
+  background: rgb(var(--bg-rgb) / var(--bg-alpha));
   border: 1px solid var(--bg-border);
   border-radius: 14px;
   padding: 10px 12px;

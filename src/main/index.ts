@@ -8,10 +8,13 @@ import {
   isEncryptionAvailable,
   loadAccounts,
   loadDisplay,
-  saveDisplay
+  nextAccountId,
+  saveDisplay,
+  upsertAccount
 } from './config'
 import { WindowManager } from './windows'
 import { createTray } from './tray'
+import { decryptAccounts } from './config'
 import type { DisplayConfig } from './config'
 
 if (!app.requestSingleInstanceLock()) {
@@ -107,6 +110,21 @@ function bootstrap(): void {
       const { shell } = await import('electron')
       await shell.openPath(userVendorsDir())
       return true
+    })
+    // 凭证读取(仅本机设置窗口使用):返回明文供表单编辑
+    ipcMain.handle('config:getCredential', (_e, vendorId: string, accountId: string) => {
+      return decryptAccounts()[vendorId]?.find((a) => a.id === accountId) ?? null
+    })
+    ipcMain.handle('config:saveCredential', (_e, vendorId: string, account: { id: string; name: string; key?: string; secret?: string; region?: string }) => {
+      upsertAccount(vendorId, account)
+      reloadAll()
+      return true
+    })
+    ipcMain.handle('config:addAccount', (_e, vendorId: string, name: string) => {
+      const id = nextAccountId(vendorId)
+      upsertAccount(vendorId, { id, name: name || id })
+      reloadAll()
+      return id
     })
     ipcMain.handle('win:openSettings', () => {
       windows.openSettings()

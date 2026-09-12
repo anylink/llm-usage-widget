@@ -14,6 +14,12 @@ const api = {
   },
   getVendorList: (): Promise<unknown> => ipcRenderer.invoke('config:vendorList'),
   openVendorsDir: (): Promise<boolean> => ipcRenderer.invoke('config:openVendorsDir'),
+  getCredential: (vendorId: string, accountId: string): Promise<unknown> =>
+    ipcRenderer.invoke('config:getCredential', vendorId, accountId),
+  saveCredential: (vendorId: string, account: unknown): Promise<boolean> =>
+    ipcRenderer.invoke('config:saveCredential', vendorId, account),
+  addAccount: (vendorId: string, name: string): Promise<string> =>
+    ipcRenderer.invoke('config:addAccount', vendorId, name),
   openSettings: (): Promise<boolean> => ipcRenderer.invoke('win:openSettings'),
   resizeWidget: (dWidth: number, dHeight: number): Promise<boolean> =>
     ipcRenderer.invoke('win:resizeWidget', dWidth, dHeight),

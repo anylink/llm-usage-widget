@@ -77,7 +77,10 @@ export function Widget() {
   const alerts = display.alerts
 
   return (
-    <div className="root" style={{ opacity: display.opacity }}>
+    <div
+      className="root"
+      style={{ ['--bg-alpha']: String(display.bgOpacity) } as React.CSSProperties}
+    >
       {entry ? (
         <div className="card" style={{ ['--accent' as string]: entry.color }}>
           <div className="head drag">
