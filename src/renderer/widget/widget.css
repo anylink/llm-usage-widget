@@ -42,7 +42,8 @@ body,
   border: 1px solid var(--bg-border);
   border-radius: 14px;
   padding: 10px 12px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  /* 不加 box-shadow:透明窗口上阴影会画到桌面上且被窗口矩形直角裁切,
+     形成灰晕和方角;悬浮感由背景色+边框承担 */
 }
 
 .drag {
