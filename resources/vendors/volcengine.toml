@@ -13,3 +13,8 @@ defaultIntervalMs = 120000   # 控制面接口,轮询放缓
 style  = "plugin"
 plugin = "volcengine_sigv4"
 fields = ["key", "secret", "region"]   # region 默认 cn-beijing
+
+[fieldHints]
+key    = "火山引擎控制台的 AccessKey ID(AK),不是推理用的 API Key"
+secret = "火山引擎控制台的 SecretKey(SK),与 AK 配对"
+region = "资源区域,不填默认 cn-beijing"

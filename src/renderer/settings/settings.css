@@ -74,6 +74,11 @@ input:focus {
 .vendor-row.clickable:hover {
   background: #f4f6fb;
 }
+.hint {
+  font-size: 11px;
+  color: #8a8f99;
+  line-height: 1.5;
+}
 .mono {
   width: 24px;
   height: 24px;

@@ -1,4 +1,4 @@
-/* 厂商定义加载:内置预置初始化 + userData/vendors/*.toml 解析校验 + 热重载 */
+/* 厂商定义加载:两层注册表(内置只读预置 + 用户目录覆盖)+ schema 校验 + 热重载 */
 import fs from 'node:fs'
 import path from 'node:path'
 import { app } from 'electron'
@@ -19,19 +19,6 @@ function builtinVendorsDir(): string {
 
 export function userVendorsDir(): string {
   return path.join(app.getPath('userData'), 'vendors')
-}
-
-/** 首次运行:把内置预置复制到 userData(存在同名则不覆盖,保留用户修改) */
-export function ensureBuiltinVendors(): void {
-  const src = builtinVendorsDir()
-  const dst = userVendorsDir()
-  fs.mkdirSync(dst, { recursive: true })
-  if (!fs.existsSync(src)) return
-  for (const f of fs.readdirSync(src)) {
-    if (!f.endsWith('.toml')) continue
-    const target = path.join(dst, f)
-    if (!fs.existsSync(target)) fs.copyFileSync(path.join(src, f), target)
-  }
 }
 
 function validate(def: Partial<VendorDef>, file: string): VendorDef {
@@ -62,10 +49,24 @@ function validate(def: Partial<VendorDef>, file: string): VendorDef {
   return def as VendorDef
 }
 
+/** 解析单个 TOML;做键名归一([[request]]→requests 等自然命名映射) */
 function parseOne(file: string): { def?: VendorDef; error?: string } {
   try {
     const raw = fs.readFileSync(file, 'utf-8')
-    const obj = parseToml(raw) as unknown as Partial<VendorDef>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const obj = parseToml(raw) as any
+    if (obj.request !== undefined) {
+      obj.requests = obj.request
+      delete obj.request
+    }
+    if (obj.parse?.window !== undefined) {
+      obj.parse.windows = obj.parse.window
+      delete obj.parse.window
+    }
+    if (obj.field_hints !== undefined) {
+      obj.fieldHints = obj.field_hints
+      delete obj.field_hints
+    }
     const def = validate(obj, path.basename(file))
     return { def }
   } catch (err) {
@@ -73,32 +74,50 @@ function parseOne(file: string): { def?: VendorDef; error?: string } {
   }
 }
 
-export function loadVendors(): LoadResult {
-  const dir = userVendorsDir()
-  const result: LoadResult = { vendors: [], errors: [] }
+function readDirVendors(dir: string, result: LoadResult): void {
   let files: string[]
   try {
     files = fs.readdirSync(dir).filter((f) => f.endsWith('.toml'))
   } catch {
-    return result
+    return // 目录不存在视为空
   }
   for (const f of files) {
     const { def, error } = parseOne(path.join(dir, f))
     if (def) result.vendors.push(def)
     else if (error) result.errors.push({ file: f, message: error })
   }
-  return result
+}
+
+/**
+ * 两层注册表:内置预置(只读,随应用分发)+ 用户 vendors/ 目录覆盖。
+ * 用户文件按 def.id 覆盖同名内置厂商;预置升级自动生效,用户自定义永不丢失。
+ */
+export function loadVendors(): LoadResult {
+  const builtin: LoadResult = { vendors: [], errors: [] }
+  const user: LoadResult = { vendors: [], errors: [] }
+  readDirVendors(builtinVendorsDir(), builtin)
+  readDirVendors(userVendorsDir(), user)
+
+  const byId = new Map<string, VendorDef>()
+  for (const v of builtin.vendors) byId.set(v.id, v)
+  for (const v of user.vendors) byId.set(v.id, v)
+
+  return {
+    vendors: [...byId.values()],
+    errors: [...builtin.errors, ...user.errors]
+  }
 }
 
 /** 监听 userData/vendors 变化,防抖后触发重载 */
 export function watchVendors(onChange: () => void): void {
   const dir = userVendorsDir()
+  fs.mkdirSync(dir, { recursive: true })
   try {
     fs.watch(dir, () => {
       clearTimeout(watchTimer)
       watchTimer = setTimeout(onChange, 500)
     })
   } catch {
-    // 目录不存在等场景静默;下次保存配置时会重建目录
+    // 监听失败不致命;下次保存配置时会重建目录
   }
 }

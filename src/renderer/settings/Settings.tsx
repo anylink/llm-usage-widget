@@ -10,6 +10,7 @@ interface VendorRow {
   color: string
   homepage?: string
   fields: string[]
+  fieldHints?: Record<string, string>
 }
 interface VendorListResp {
   vendors: VendorRow[]
@@ -141,6 +142,7 @@ export function Settings() {
                       placeholder={f === 'region' ? 'cn-beijing' : ''}
                       onChange={(e) => patchForm(a.id, f as keyof CredentialForm, e.target.value)}
                     />
+                    {vendor.fieldHints?.[f] && <span className="hint">{vendor.fieldHints[f]}</span>}
                   </label>
                 ))}
                 <div className="acc-actions">

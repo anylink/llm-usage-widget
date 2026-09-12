@@ -12,6 +12,9 @@ style  = "raw"                 # 裸 Key
 headerName = "Authorization"
 fields = ["key"]
 
+[fieldHints]
+key = "直接填智谱 API Key;程序会按官方要求原样放入 Authorization 头(不加 Bearer)"
+
 [[request]]
 method  = "GET"
 url     = "https://open.bigmodel.cn/api/monitor/usage/quota/limit"

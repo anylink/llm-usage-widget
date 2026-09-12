@@ -1,7 +1,7 @@
 /* 主进程入口:单实例、窗口、托盘、调度器、IPC 组装 */
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { createPluginRegistry } from './engine/plugins'
-import { ensureBuiltinVendors, loadVendors, watchVendors, userVendorsDir } from './engine/loader'
+import { loadVendors, watchVendors, userVendorsDir } from './engine/loader'
 import { Scheduler } from './scheduler'
 import {
   ensureDefaultAccounts,
@@ -25,8 +25,6 @@ if (!app.requestSingleInstanceLock()) {
 
 function bootstrap(): void {
   app.whenReady().then(() => {
-    ensureBuiltinVendors()
-
     const windows = new WindowManager()
     const display = loadDisplay()
     let displayCfg: DisplayConfig = display
@@ -95,6 +93,7 @@ function bootstrap(): void {
           logo: v.logo,
           homepage: v.homepage,
           fields: v.auth.fields,
+          fieldHints: v.fieldHints,
           intervalMs: v.defaultIntervalMs
         })),
         errors: result.errors,

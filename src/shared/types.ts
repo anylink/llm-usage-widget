@@ -113,6 +113,8 @@ export interface VendorDef {
   color?: string
   homepage?: string
   defaultIntervalMs?: number
+  /** 凭证字段的填写提示(设置页渲染在输入框下) */
+  fieldHints?: Record<string, string>
   auth: AuthSpec
   requests: RequestSpec[]
   check?: CheckSpec

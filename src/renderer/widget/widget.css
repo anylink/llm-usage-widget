@@ -2,7 +2,7 @@
 :root {
   /* 背景透明度走独立变量:卡片背景半透明,文字/图标不跟随(--bg-alpha 由显示设置写入) */
   --bg-alpha: 0.9;
-  --bg-rgb: 22, 24, 30;
+  --bg-rgb: 22 24 30;
   --bg-border: rgba(255, 255, 255, 0.08);
   --text-primary: #eceef2;
   --text-secondary: #9aa1ad;
