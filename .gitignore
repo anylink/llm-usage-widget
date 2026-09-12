@@ -2,6 +2,7 @@ node_modules/
 out/
 dist/
 *.local
+*.tsbuildinfo
 .DS_Store
 .vscode/*
 !.vscode/extensions.json
