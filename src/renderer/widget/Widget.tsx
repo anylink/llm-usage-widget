@@ -255,11 +255,18 @@ export function Widget() {
     return () => clearInterval(t)
   }, [display?.mode, display?.autoCycleMs])
 
-  // 列表模式:窗口高度自适应内容
+  // 列表模式:窗口高度自适应内容自然高度(卡片不拉伸,量到的即内容值;
+  // 高度未变化时不重复 setSize,避免每次轮询都把窗口顶长一截)
+  const lastFitRef = React.useRef(0)
   useEffect(() => {
     if (!display || display.mode !== 'list') return
     const el = document.getElementById('list-card')
-    if (el) void window.api.setHeight(Math.min(700, Math.max(120, el.offsetHeight + 6)))
+    if (!el) return
+    const h = Math.min(700, Math.max(120, Math.round(el.offsetHeight + 6)))
+    if (Math.abs(h - lastFitRef.current) > 2) {
+      lastFitRef.current = h
+      void window.api.setHeight(h)
+    }
   }, [display?.mode, snapshot?.dataGen])
 
   if (!display) return <div className="root" />
