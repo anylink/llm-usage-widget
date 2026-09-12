@@ -156,7 +156,10 @@ export interface DisplayConfig {
   bgOpacity: number
   /** 悬浮窗展示形式:轮播(仅已配置厂商,空时显示示例)或列表(全部已配置) */
   mode: WidgetMode
+  /** 主题包 id:内置 dark/light/glass/pixel,或用户 themes/*.css 的文件名 */
   theme: string
+  /** 字体颜色覆盖(#RRGGBB);空 = 跟随主题 */
+  textColor?: string
   pollIntervalMs: number
   autoCycleMs: number // 卡片自动翻页间隔,0 = 关闭
   alwaysOnTop: boolean
@@ -189,6 +192,13 @@ export interface AlertEvent {
   kind: EntryKind
   color: string
   at: number // epoch 秒
+}
+
+/* ── 主题包(内置 id + 用户 themes/*.css 内容) ── */
+
+export interface ThemePayload {
+  builtin: string[]
+  user: { id: string; css: string }[]
 }
 
 /* ── 自动更新(主进程 updater → 关于页) ── */

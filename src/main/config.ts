@@ -40,6 +40,7 @@ export function defaultDisplay(): DisplayConfig {
     bgOpacity: 0.9,
     mode: 'carousel',
     theme: 'dark',
+    textColor: '',
     pollIntervalMs: 60_000,
     autoCycleMs: 8_000,
     alwaysOnTop: true,

@@ -17,6 +17,7 @@ import {
 } from './config'
 import { WindowManager } from './windows'
 import { createTray } from './tray'
+import { themesPayload, watchThemes } from './themes'
 import { decryptAccounts } from './config'
 import type { DisplayConfig } from './config'
 
@@ -69,6 +70,16 @@ function bootstrap(): void {
     scheduler.reload(loaded.vendors, loaded.errors, accounts)
     watchVendors(reloadAll)
 
+    // ── 主题清单与用户主题热加载 ──
+    const broadcastThemes = (): void => {
+      const payload = themesPayload()
+      for (const w of BrowserWindow.getAllWindows()) {
+        if (!w.isDestroyed()) w.webContents.send('themes:changed', payload)
+      }
+    }
+    ipcMain.handle('themes:list', () => themesPayload())
+    watchThemes(broadcastThemes)
+
     // ── 托盘 ──
     const tray = createTray({
       onToggleWidget: () => {
@@ -101,6 +112,7 @@ function bootstrap(): void {
       if (windows.widget) {
         windows.widget.setAlwaysOnTop(displayCfg.alwaysOnTop, 'screen-saver')
         windows.applyClickThrough(windows.widget, displayCfg.clickThrough)
+        windows.applyThemeMaterial(windows.widget, displayCfg.theme)
       }
       // 设置页切换点击穿透后,同步托盘菜单勾选(菜单勾选在构建时求值)
       if (patch.clickThrough !== undefined) tray.refreshMenu()

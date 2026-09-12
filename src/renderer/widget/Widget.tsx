@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
-import type { AlertEvent, DisplayConfig, QuotaWindow, SchedulerSnapshot, UsageEntry } from '@shared/types'
+import type { AlertEvent, DisplayConfig, QuotaWindow, SchedulerSnapshot, ThemePayload, UsageEntry } from '@shared/types'
 import { i18n } from './i18n'
 import { resolveLocale } from '@shared/i18n'
 
@@ -331,6 +331,7 @@ function ListMode({
 export function Widget() {
   const [snapshot, setSnapshot] = useState<SchedulerSnapshot | null>(null)
   const [display, setDisplay] = useState<DisplayConfig | null>(null)
+  const [themes, setThemes] = useState<ThemePayload | null>(null)
   const [bubble, setBubble] = useState<AlertEvent | null>(null)
   const [page, setPage] = useState(0)
   const [, setTick] = useState(0) // 倒计时每秒重绘
@@ -358,12 +359,39 @@ export function Widget() {
       clearTimeout(bubbleTimer.current)
       bubbleTimer.current = window.setTimeout(() => setBubble(null), 8000)
     })
+    void window.api.getThemes().then((t2) => setThemes(t2 as ThemePayload))
+    window.api.onThemesChanged((t2) => setThemes(t2 as ThemePayload))
     const t = setInterval(() => setTick((x) => x + 1), 1000)
     return () => {
       clearInterval(t)
       clearTimeout(bubbleTimer.current)
     }
   }, [])
+
+  // 主题包:内置主题映射 body[data-theme];用户主题 CSS 另行注入
+  useEffect(() => {
+    document.body.dataset.theme = display && display.theme !== 'dark' ? display.theme : ''
+    // 字体颜色覆盖:副色按 62% 透明度派生,任意主题底色下都可读
+    const v = display?.textColor?.trim() ?? ''
+    if (v) {
+      document.body.style.setProperty('--tp', v)
+      document.body.style.setProperty('--ts', `color-mix(in srgb, ${v} 62%, transparent)`)
+    } else {
+      document.body.style.removeProperty('--tp')
+      document.body.style.removeProperty('--ts')
+    }
+  }, [display?.theme, display?.textColor])
+
+  // 用户主题 CSS 注入(变更时清旧重注;约定选择器 body[data-theme='文件名'])
+  useEffect(() => {
+    document.querySelectorAll('style[data-user-theme]').forEach((el) => el.remove())
+    for (const th of themes?.user ?? []) {
+      const s = document.createElement('style')
+      s.dataset.userTheme = th.id
+      s.textContent = th.css
+      document.head.appendChild(s)
+    }
+  }, [themes])
 
   // 自动翻页(仅轮播)
   useEffect(() => {

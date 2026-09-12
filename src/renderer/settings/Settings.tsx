@@ -1,7 +1,7 @@
 /* 设置窗口:左侧导航 + 右侧内容(布局参考 Clawd on Desk 的设置框架) */
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { DisplayConfig, UpdateState } from '@shared/types'
+import type { DisplayConfig, ThemePayload, UpdateState } from '@shared/types'
 import { i18n } from './i18n'
 import { resolveLocale } from '@shared/i18n'
 
@@ -117,6 +117,7 @@ export function Settings() {
   const [enc, setEnc] = useState(true)
   const [openVendorId, setOpenVendorId] = useState<string | null>(null)
   const [updateState, setUpdateState] = useState<UpdateState | null>(null)
+  const [themes, setThemes] = useState<ThemePayload | null>(null)
 
   const loadList = (): void => {
     void window.api.getVendorList().then((d) => setData(d as VendorListResp))
@@ -140,6 +141,8 @@ export function Settings() {
       })
     })
     window.api.onUpdateStatus((s) => setUpdateState(s as UpdateState))
+    void window.api.getThemes().then((t2) => setThemes(t2 as ThemePayload))
+    window.api.onThemesChanged((t2) => setThemes(t2 as ThemePayload))
   }, [])
 
   const patchDisplay = (patch: Partial<DisplayConfig>): void => {
@@ -174,7 +177,7 @@ export function Settings() {
       />
     )
   } else if (page === 'display' && display) {
-    content = <DisplayPage display={display} onChange={patchDisplay} />
+    content = <DisplayPage display={display} themes={themes} onChange={patchDisplay} />
   } else if (page === 'alerts' && display) {
     content = <AlertsPage display={display} onChange={patchDisplay} />
   } else if (page === 'about') {
@@ -404,9 +407,11 @@ function VendorDetail({
 /* ── 显示页 ── */
 function DisplayPage({
   display,
+  themes,
   onChange
 }: {
   display: DisplayConfig
+  themes: ThemePayload | null
   onChange(patch: Partial<DisplayConfig>): void
 }) {
   const { t } = useTranslation()
@@ -429,6 +434,43 @@ function DisplayPage({
             </button>
           ))}
         </div>
+      </section>
+      <section>
+        <h2>{t(`${S}.themes`)}</h2>
+        <div className="seg">
+          {(themes?.builtin ?? ['dark', 'light', 'glass', 'pixel']).map((id) => (
+            <button key={id} className={display.theme === id ? 'on' : ''} onClick={() => onChange({ theme: id })}>
+              {t(`settings.display.theme_${id}`)}
+              <small>{id}</small>
+            </button>
+          ))}
+          {themes?.user.map((u) => (
+            <button key={u.id} className={display.theme === u.id ? 'on' : ''} onClick={() => onChange({ theme: u.id })}>
+              {u.id}
+              <small>{t(`${S}.userTheme`)}</small>
+            </button>
+          ))}
+        </div>
+        <p className="hint" style={{ marginTop: 8 }}>
+          {t(`${S}.themesHint`)}
+        </p>
+      </section>
+      <section>
+        <h2>{t(`${S}.fontColor`)}</h2>
+        <div className="check-row" style={{ alignItems: 'center' }}>
+          <input
+            type="color"
+            aria-label={t(`${S}.fontColor`)}
+            value={/^#[0-9a-fA-F]{6}$/.test(display.textColor ?? '') ? (display.textColor as string) : '#eceef2'}
+            onChange={(e) => onChange({ textColor: e.target.value })}
+          />
+          <button className="ghost" onClick={() => onChange({ textColor: '' })}>
+            {t(`${S}.fontColorReset`)}
+          </button>
+        </div>
+        <p className="hint" style={{ marginTop: 8 }}>
+          {t(`${S}.fontColorHint`)}
+        </p>
       </section>
       <section>
         <h2>{t(`${S}.form`)}</h2>

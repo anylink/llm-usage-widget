@@ -1,15 +1,82 @@
-/* 悬浮窗主题变量:暗色默认主题;主题包(themes/*.css)可整体覆盖这些变量 */
+/* 悬浮窗主题变量:暗色默认主题;主题包(设计 §9.3)按 body[data-theme='id'] 覆盖,
+   用户主题 themes/*.css 由主进程下发 CSS 注入,同样用该选择器 */
 :root {
   /* 背景透明度走独立变量:卡片背景半透明,文字/图标不跟随(--bg-alpha 由显示设置写入) */
   --bg-alpha: 0.9;
   --bg-rgb: 22 24 30;
   --bg-border: rgba(255, 255, 255, 0.08);
-  --text-primary: #eceef2;
-  --text-secondary: #9aa1ad;
+  /* 文字基础色;字体颜色覆盖时由 JS 写 --tp/--ts(映射在下方 body 规则求值) */
+  --text-base-primary: #eceef2;
+  --text-base-secondary: #9aa1ad;
   --ok: #3fb96a;
   --warn: #e8a33d;
   --danger: #e5534b;
   --accent: #4d6bfe;
+  --ctrl: rgba(255, 255, 255, 0.07);
+  --ctrl-hover: rgba(255, 255, 255, 0.15);
+  --track: rgba(255, 255, 255, 0.08);
+  --divider: rgba(255, 255, 255, 0.05);
+  --radius: 14px;
+  --radius-sm: 6px;
+  --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+}
+
+/* 文字色映射:声明在 body 上,使 JS 字色覆盖(--tp/--ts)与主题基础色统一生效。
+   自定义属性内的 var() 只在声明元素上求值,故不能写在 :root */
+body {
+  --text-primary: var(--tp, var(--text-base-primary));
+  --text-secondary: var(--ts, var(--text-base-secondary));
+}
+
+/* 亮色主题 */
+body[data-theme='light'] {
+  --bg-rgb: 250 251 253;
+  --bg-border: rgba(0, 0, 0, 0.1);
+  --text-base-primary: #1c1f26;
+  --text-base-secondary: #5c6470;
+  --ok: #2f9e57;
+  --warn: #d98a1f;
+  --danger: #d64541;
+  --accent: #3b5bdb;
+  --ctrl: rgba(0, 0, 0, 0.06);
+  --ctrl-hover: rgba(0, 0, 0, 0.12);
+  --track: rgba(0, 0, 0, 0.1);
+  --divider: rgba(0, 0, 0, 0.07);
+}
+
+/* 玻璃拟态:磨砂浅底 + 高光描边;原生模糊由主进程 vibrancy/acrylic 提供 */
+body[data-theme='glass'] {
+  --bg-rgb: 240 243 248;
+  --bg-border: rgba(255, 255, 255, 0.45);
+  --text-base-primary: #16181d;
+  --text-base-secondary: #4c5560;
+  --ok: #2f9e57;
+  --warn: #c07c14;
+  --danger: #d64541;
+  --accent: #3b5bdb;
+  --ctrl: rgba(22, 24, 29, 0.06);
+  --ctrl-hover: rgba(22, 24, 29, 0.12);
+  --track: rgba(22, 24, 29, 0.1);
+  --divider: rgba(22, 24, 29, 0.08);
+}
+
+/* 像素风:直角 + 等宽字体(呼应桌宠气质) */
+body[data-theme='pixel'] {
+  --bg-rgb: 26 28 44;
+  --bg-border: #565f89;
+  --text-base-primary: #e2e6f0;
+  --text-base-secondary: #9aa5ce;
+  --ok: #9ece6a;
+  --warn: #e0af68;
+  --danger: #f7768e;
+  --accent: #7aa2f7;
+  --ctrl: rgba(122, 162, 247, 0.15);
+  --ctrl-hover: rgba(122, 162, 247, 0.3);
+  --track: rgba(122, 162, 247, 0.2);
+  --divider: rgba(86, 95, 137, 0.6);
+  --radius: 2px;
+  --radius-sm: 2px;
+  --font: 'Courier New', ui-monospace, monospace;
 }
 
 * {
@@ -25,7 +92,7 @@ body,
   background: transparent;
   overflow: hidden;
   height: 100%;
-  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  font-family: var(--font);
 }
 
 .root {
@@ -69,7 +136,7 @@ body,
   border: none;
   background: transparent;
   color: var(--text-secondary);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -77,7 +144,7 @@ body,
   padding: 0;
 }
 .tbtn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--ctrl-hover);
   color: var(--text-primary);
 }
 .tbtn.t-on {
@@ -102,7 +169,7 @@ body,
   /* 边框透明度由 Widget 按背景透明度动态写入:背景越透,边框越清晰,
      全透明时仍有一圈细边约束区域(类似 Win11 桌面框选的样式) */
   border: 1px solid rgb(255 255 255 / var(--border-alpha, 0.08));
-  border-radius: 14px;
+  border-radius: var(--radius);
   padding: 10px 12px;
   /* 不加 box-shadow:透明窗口上阴影会画到桌面上且被窗口矩形直角裁切,
      形成灰晕和方角;悬浮感由背景色+边框承担 */
@@ -136,7 +203,7 @@ body,
 .logo {
   width: 20px;
   height: 20px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -161,17 +228,17 @@ body,
 .btn {
   -webkit-app-region: no-drag;
   border: none;
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--ctrl);
   color: var(--text-secondary);
   width: 22px;
   height: 22px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 13px;
   line-height: 1;
   cursor: pointer;
 }
 .btn:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--ctrl-hover);
   color: var(--text-primary);
 }
 .btn.setup {
@@ -192,7 +259,7 @@ body,
 .bar {
   height: 8px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--track);
   overflow: hidden;
 }
 .bar-fill {
@@ -226,7 +293,7 @@ body,
 .win-bar {
   height: 5px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--track);
   overflow: hidden;
   display: block;
 }
@@ -303,7 +370,7 @@ body,
   align-items: center;
   gap: 8px;
   padding: 6px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--divider);
 }
 .li-row:last-child {
   border-bottom: none;
@@ -338,7 +405,7 @@ body,
   display: block;
   height: 4px;
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--track);
   overflow: hidden;
 }
 .li-bar-fill {
@@ -387,7 +454,7 @@ body,
   align-items: center;
   gap: 6px;
   padding: 7px 9px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: rgb(var(--bg-rgb) / 0.97);
   border: 1px solid var(--warn);
   font-size: 11px;

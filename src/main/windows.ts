@@ -46,6 +46,7 @@ export class WindowManager {
       }
     })
     win.setAlwaysOnTop(display.alwaysOnTop, 'screen-saver')
+    this.applyThemeMaterial(win, display.theme)
     loadRenderer(win, 'widget')
     win.once('ready-to-show', () => win.show())
     this.applyClickThrough(win, display.clickThrough)
@@ -76,6 +77,19 @@ export class WindowManager {
 
   applyClickThrough(win: BrowserWindow, on: boolean): void {
     win.setIgnoreMouseEvents(on, { forward: true })
+  }
+
+  /** 玻璃拟态主题启用系统级原生模糊(mac vibrancy / Win11 acrylic),其余主题清除 */
+  applyThemeMaterial(win: BrowserWindow, theme: string): void {
+    try {
+      if (process.platform === 'darwin') {
+        win.setVibrancy(theme === 'glass' ? 'under-window' : null)
+      } else if (process.platform === 'win32' && typeof win.setBackgroundMaterial === 'function') {
+        win.setBackgroundMaterial(theme === 'glass' ? 'acrylic' : 'auto')
+      }
+    } catch {
+      // 平台不支持则静默,退化为纯半透明
+    }
   }
 
   /** title 由调用方传入(已本地化);页面加载后渲染层会再按语言设置 document.title */
