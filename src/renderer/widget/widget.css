@@ -32,6 +32,8 @@ body,
   height: 100vh;
   display: flex;
   flex-direction: column;
+  /* 背景接近全透明时由 Widget 写入描边阴影,保证文字贴桌面时仍可读 */
+  text-shadow: none;
 }
 
 .card {

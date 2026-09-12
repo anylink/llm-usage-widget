@@ -276,6 +276,14 @@ export function Widget() {
 
   if (!display) return <div className="root" />
 
+  // 背景接近全透明时,文字直接贴桌面,自动加描边阴影保证浅色壁纸下可读
+  const textShadow =
+    display.bgOpacity < 0.3 ? '0 1px 2px rgba(0,0,0,0.9), 0 0 1px rgba(0,0,0,0.9)' : 'none'
+  const rootStyle = {
+    ['--bg-alpha']: String(display.bgOpacity),
+    textShadow
+  } as React.CSSProperties
+
   const entries = snapshot?.entries ?? []
   const configured = entries.filter((e) => e.status !== 'no-key')
 
@@ -306,7 +314,7 @@ export function Widget() {
       return (
         <div
           className="root"
-          style={{ ['--bg-alpha']: String(display.bgOpacity) } as React.CSSProperties}
+          style={rootStyle}
         >
           <ListMode entries={[demoEntry(), demoBalanceEntry()]} display={display} isDemo />
           {demoHandle}
@@ -316,7 +324,7 @@ export function Widget() {
     return (
       <div
         className="root"
-        style={{ ['--bg-alpha']: String(display.bgOpacity) } as React.CSSProperties}
+        style={rootStyle}
       >
         <Card entry={demoEntry()} display={display} isDemo footLeft="未配置" />
         {demoHandle}
@@ -329,7 +337,7 @@ export function Widget() {
     return (
       <div
         className="root"
-        style={{ ['--bg-alpha']: String(display.bgOpacity) } as React.CSSProperties}
+        style={rootStyle}
       >
         <ListMode entries={configured} display={display} />
         <div
@@ -361,7 +369,7 @@ export function Widget() {
   return (
     <div
       className="root"
-      style={{ ['--bg-alpha']: String(display.bgOpacity) } as React.CSSProperties}
+      style={rootStyle}
     >
       <Card
         entry={entry}

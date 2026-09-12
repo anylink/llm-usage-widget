@@ -417,9 +417,10 @@ function DisplayPage({
         <h2>悬浮窗</h2>
         <label>
           背景不透明度:{Math.round(display.bgOpacity * 100)}%
+          {display.bgOpacity === 0 ? '(无背景,仅文字与图标悬浮)' : '(文字与图标保持不透明)'}
           <input
             type="range"
-            min={0.05}
+            min={0}
             max={1}
             step={0.01}
             value={display.bgOpacity}
