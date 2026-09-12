@@ -338,17 +338,23 @@ export function Widget() {
     return () => clearInterval(t)
   }, [display?.mode, display?.autoCycleMs])
 
-  // 两种模式统一:窗口高度自适应内容自然高度(卡片不拉伸,量到的是内容值;
-  // 高度未变化时不重复 setSize,避免每次轮询都把窗口顶长一截)
+  // 两种模式统一:窗口高度自适应内容自然高度。量 .root 的全部流内子元素
+  // (工具条 + 卡片/列表,含外边距),绝对/固定定位的气泡与缩放手柄不计入;
+  // 收起时只剩工具条,高度随之收缩,不留透明点击盲区。
+  // 高度未变化时不重复 setSize,避免每次轮询都把窗口顶长一截
   const lastFitRef = React.useRef(0)
   useEffect(() => {
     if (!display) return
-    const el =
-      display.mode === 'list'
-        ? document.getElementById('list-card')
-        : document.querySelector<HTMLElement>('.card')
-    if (!el) return
-    const h = Math.min(700, Math.max(120, Math.round(el.offsetHeight + 6)))
+    const root = document.querySelector<HTMLElement>('.root')
+    if (!root) return
+    let content = 0
+    for (const child of root.children) {
+      const c = child as HTMLElement
+      const cs = getComputedStyle(c)
+      if (cs.position === 'absolute' || cs.position === 'fixed') continue
+      content += c.offsetHeight + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom)
+    }
+    const h = Math.min(700, Math.max(36, Math.round(content + 6)))
     if (Math.abs(h - lastFitRef.current) > 2) {
       lastFitRef.current = h
       void window.api.setHeight(h)

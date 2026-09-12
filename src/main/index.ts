@@ -76,7 +76,6 @@ function bootstrap(): void {
       onRefresh: () => scheduler.refreshAll(),
       onOpenSettings: () => windows.openSettings()
     })
-    void tray
 
     // ── IPC ──
     ipcMain.handle('usage:snapshot', () => scheduler.snapshot())
@@ -93,6 +92,8 @@ function bootstrap(): void {
         windows.widget.setAlwaysOnTop(displayCfg.alwaysOnTop, 'screen-saver')
         windows.applyClickThrough(windows.widget, displayCfg.clickThrough)
       }
+      // 设置页切换点击穿透后,同步托盘菜单勾选(菜单勾选在构建时求值)
+      if (patch.clickThrough !== undefined) tray.refreshMenu()
       windows.broadcastSettings()
       return displayCfg
     })
@@ -152,12 +153,12 @@ function bootstrap(): void {
       w.setSize(width, height)
       return true
     })
-    // 列表模式:按内容高度自适应窗口高度
+    // 高度自适应:按内容高度设定窗口(收起时仅工具条,约 40px,故下限 36)
     ipcMain.handle('win:setHeight', (_e, height: number) => {
       const w = windows.widget
       if (!w || w.isDestroyed()) return false
       const b = w.getBounds()
-      const h = Math.min(700, Math.max(120, Math.round(height)))
+      const h = Math.min(700, Math.max(36, Math.round(height)))
       w.setSize(b.width, h)
       return true
     })
