@@ -83,11 +83,13 @@ function Card({
   entry,
   display,
   isDemo,
+  footLeft,
   extraHead
 }: {
   entry: UsageEntry
   display: DisplayConfig
   isDemo?: boolean
+  footLeft?: string
   extraHead?: React.ReactNode
 }) {
   const primary = entry.windows?.[0]
@@ -149,7 +151,7 @@ function Card({
       </div>
 
       <div className="foot drag">
-        <span className="foot-left">{isDemo ? '未配置' : ''}</span>
+        <span className="foot-left">{footLeft ?? ''}</span>
         <span className={`foot-status ${entry.status === 'ok' ? '' : 'foot-warn'}`}>
           {entry.status === 'ok' ? fmtAge(entry.queriedAt) : errText}
         </span>
@@ -255,19 +257,22 @@ export function Widget() {
     return () => clearInterval(t)
   }, [display?.mode, display?.autoCycleMs])
 
-  // 列表模式:窗口高度自适应内容自然高度(卡片不拉伸,量到的即内容值;
+  // 两种模式统一:窗口高度自适应内容自然高度(卡片不拉伸,量到的是内容值;
   // 高度未变化时不重复 setSize,避免每次轮询都把窗口顶长一截)
   const lastFitRef = React.useRef(0)
   useEffect(() => {
-    if (!display || display.mode !== 'list') return
-    const el = document.getElementById('list-card')
+    if (!display) return
+    const el =
+      display.mode === 'list'
+        ? document.getElementById('list-card')
+        : document.querySelector<HTMLElement>('.card')
     if (!el) return
     const h = Math.min(700, Math.max(120, Math.round(el.offsetHeight + 6)))
     if (Math.abs(h - lastFitRef.current) > 2) {
       lastFitRef.current = h
       void window.api.setHeight(h)
     }
-  }, [display?.mode, snapshot?.dataGen])
+  }, [display?.mode, display?.bgOpacity, snapshot?.dataGen, page])
 
   if (!display) return <div className="root" />
 
@@ -276,6 +281,27 @@ export function Widget() {
 
   // 全部未配置:示例展示(轮播显单卡片;列表显套餐+余额两行)
   if (configured.length === 0) {
+    const demoHandle = (
+      <div
+        className="resize-handle no-drag"
+        onMouseDown={(e) => {
+          e.preventDefault()
+          let lastX = e.screenX
+          let lastY = e.screenY
+          const move = (ev: MouseEvent): void => {
+            void window.api.resizeWidget(ev.screenX - lastX, ev.screenY - lastY)
+            lastX = ev.screenX
+            lastY = ev.screenY
+          }
+          const up = (): void => {
+            window.removeEventListener('mousemove', move)
+            window.removeEventListener('mouseup', up)
+          }
+          window.addEventListener('mousemove', move)
+          window.addEventListener('mouseup', up)
+        }}
+      />
+    )
     if (display.mode === 'list') {
       return (
         <div
@@ -283,25 +309,7 @@ export function Widget() {
           style={{ ['--bg-alpha']: String(display.bgOpacity) } as React.CSSProperties}
         >
           <ListMode entries={[demoEntry(), demoBalanceEntry()]} display={display} isDemo />
-          <div
-            className="resize-handle no-drag"
-            onMouseDown={(e) => {
-              e.preventDefault()
-              let lastX = e.screenX
-              let lastY = e.screenY
-              const move = (ev: MouseEvent): void => {
-                void window.api.resizeWidget(ev.screenX - lastX, ev.screenY - lastY)
-                lastX = ev.screenX
-                lastY = ev.screenY
-              }
-              const up = (): void => {
-                window.removeEventListener('mousemove', move)
-                window.removeEventListener('mouseup', up)
-              }
-              window.addEventListener('mousemove', move)
-              window.addEventListener('mouseup', up)
-            }}
-          />
+          {demoHandle}
         </div>
       )
     }
@@ -310,26 +318,8 @@ export function Widget() {
         className="root"
         style={{ ['--bg-alpha']: String(display.bgOpacity) } as React.CSSProperties}
       >
-        <Card entry={demoEntry()} display={display} isDemo />
-        <div
-          className="resize-handle no-drag"
-          onMouseDown={(e) => {
-            e.preventDefault()
-            let lastX = e.screenX
-            let lastY = e.screenY
-            const move = (ev: MouseEvent): void => {
-              void window.api.resizeWidget(ev.screenX - lastX, ev.screenY - lastY)
-              lastX = ev.screenX
-              lastY = ev.screenY
-            }
-            const up = (): void => {
-              window.removeEventListener('mousemove', move)
-              window.removeEventListener('mouseup', up)
-            }
-            window.addEventListener('mousemove', move)
-            window.addEventListener('mouseup', up)
-          }}
-        />
+        <Card entry={demoEntry()} display={display} isDemo footLeft="未配置" />
+        {demoHandle}
       </div>
     )
   }
@@ -376,6 +366,7 @@ export function Widget() {
       <Card
         entry={entry}
         display={display}
+        footLeft={count > 1 ? `${(page % count) + 1} / ${count}` : ''}
         extraHead={
           <>
             {count > 1 && (
@@ -394,11 +385,6 @@ export function Widget() {
           </>
         }
       />
-      <div className="foot drag" style={{ justifyContent: 'center', minHeight: 12 }}>
-        <span className="foot-left" style={{ margin: '0 auto' }}>
-          {count > 1 ? `${(page % count) + 1} / ${count}` : ''}
-        </span>
-      </div>
       <div
         className="resize-handle no-drag"
         onMouseDown={(e) => {

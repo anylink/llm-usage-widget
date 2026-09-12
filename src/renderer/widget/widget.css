@@ -35,7 +35,7 @@ body,
 }
 
 .card {
-  flex: 1;
+  flex: none; /* 内容自然高度;两种模式的窗口高度都由自适应逻辑按内容设定 */
   display: flex;
   flex-direction: column;
   background: rgb(var(--bg-rgb) / var(--bg-alpha));
@@ -217,7 +217,6 @@ body,
 
 /* 列表模式 */
 .card.list {
-  flex: none; /* 内容自然高度,不随窗口拉伸——高度自适应测量的是自然值,避免反馈循环 */
   gap: 0;
 }
 .list-body {
