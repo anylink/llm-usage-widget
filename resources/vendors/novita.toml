@@ -1,0 +1,20 @@
+# Novita AI — 账户余额。接口金额单位为"万分之一美元",scale ×0.0001
+id       = "novita"
+name     = "Novita AI"
+kind     = "balance"
+color    = "#10B981"
+homepage = "https://novita.ai"
+defaultIntervalMs = 300000
+
+[auth]
+style  = "bearer"
+fields = ["key"]
+
+[[request]]
+method  = "GET"
+url     = "https://api.novita.ai/v3/user/balance"
+timeoutMs = 15000
+
+[parse]
+value = { path = "availableBalance", scale = 0.0001 }
+unit  = "USD"

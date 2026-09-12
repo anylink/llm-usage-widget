@@ -1,0 +1,39 @@
+# 智谱 GLM 团队版(Team Plan)— 与个人版同端点,靠 ?type=2 区分
+# (对应 CC Switch 的经验:base_url 相同无法自动区分,必须显式指定)
+id       = "glm-team"
+name     = "智谱 GLM 团队版"
+kind     = "quota"
+color    = "#5A6CFF"
+homepage = "https://open.bigmodel.cn"
+
+[auth]
+style  = "raw"
+headerName = "Authorization"
+fields = ["key"]
+
+[[request]]
+method  = "GET"
+url     = "https://open.bigmodel.cn/api/monitor/usage/quota/limit?type=2"
+timeoutMs = 15000
+
+[parse]
+listPath  = "data.limits"
+listMatch = { path = "type", in = ["TOKENS_LIMIT", "CREDIT_LIMIT"] }
+
+[[parse.window]]
+label      = "5h"
+match      = { path = "unit", equals = 3 }
+percent    = { path = "percentage" }
+reset      = "nextResetTime"
+
+[[parse.window]]
+label      = "wk"
+match      = { path = "unit", equals = 6 }
+percent    = { path = "percentage" }
+reset      = "nextResetTime"
+
+[[parse.window]]
+label      = "5h"
+fallback   = true
+percent    = { path = "percentage" }
+reset      = "nextResetTime"

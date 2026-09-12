@@ -1,0 +1,32 @@
+# OpenCode Go — $10/月订阅,三时间窗口美元额度(端点只回百分比)
+# 官方第一方但未文档化,曾改过一次形态(旧扁平 rollingUsage 已作废);
+# percent=0 时 resetsAt 是占位值,倒计时可能不准(已知小瑕疵,M1 接受)
+id       = "opencode-go"
+name     = "OpenCode Go"
+kind     = "quota"
+color    = "#F59E0B"
+homepage = "https://opencode.ai"
+
+[auth]
+style  = "bearer"
+fields = ["key"]
+
+[[request]]
+method  = "GET"
+url     = "https://opencode.ai/zen/go/v1/usage"
+timeoutMs = 15000
+
+[[parse.window]]
+label   = "5h"
+percent = { path = "usage.rolling.percent" }
+reset   = "usage.rolling.resetsAt"
+
+[[parse.window]]
+label   = "wk"
+percent = { path = "usage.weekly.percent" }
+reset   = "usage.weekly.resetsAt"
+
+[[parse.window]]
+label   = "mo"
+percent = { path = "usage.monthly.percent" }
+reset   = "usage.monthly.resetsAt"

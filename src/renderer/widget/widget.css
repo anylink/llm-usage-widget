@@ -1,0 +1,216 @@
+/* 悬浮窗主题变量:暗色默认主题;主题包(themes/*.css)可整体覆盖这些变量 */
+:root {
+  --bg: rgba(22, 24, 30, 0.88);
+  --bg-border: rgba(255, 255, 255, 0.08);
+  --text-primary: #eceef2;
+  --text-secondary: #9aa1ad;
+  --ok: #3fb96a;
+  --warn: #e8a33d;
+  --danger: #e5534b;
+  --accent: #4d6bfe;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+html,
+body,
+#root {
+  background: transparent;
+  overflow: hidden;
+  height: 100%;
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+}
+
+.root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border: 1px solid var(--bg-border);
+  border-radius: 14px;
+  padding: 10px 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
+.drag {
+  -webkit-app-region: drag;
+}
+.no-drag,
+.no-drag * {
+  -webkit-app-region: no-drag;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+}
+.logo {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  flex: none;
+}
+.name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.head-btns {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+.btn {
+  -webkit-app-region: no-drag;
+  border: none;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-secondary);
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+.btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+}
+.btn.setup {
+  width: auto;
+  padding: 0 12px;
+  height: 28px;
+  background: var(--accent);
+  color: #fff;
+}
+
+.body {
+  padding: 10px 2px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bar {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease, background 0.3s;
+}
+.pct {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.windows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.win-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 44px auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.win-label {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.win-bar {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  display: block;
+}
+.win-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease, background 0.3s;
+}
+.win-reset {
+  justify-self: end;
+  white-space: nowrap;
+}
+
+.balance {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.balance-num {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.balance-unit {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.state {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 4px 0;
+}
+.state-err {
+  color: var(--danger);
+}
+
+.foot {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-secondary);
+  min-height: 14px;
+}
+.foot-warn {
+  color: var(--warn);
+}
+
+.card.empty .body {
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.resize-handle {
+  position: fixed;
+  right: 2px;
+  bottom: 2px;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+}

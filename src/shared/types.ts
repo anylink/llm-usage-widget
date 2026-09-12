@@ -1,0 +1,168 @@
+/* 归一化数据模型 + 厂商定义类型(引擎与 UI 共用) */
+
+export type EntryKind = 'balance' | 'quota'
+
+export type EntryStatus =
+  | 'ok'
+  | 'updating'
+  | 'no-key'
+  | 'network'
+  | 'http'
+  | 'auth'
+  | 'parse'
+  | 'business'
+  | 'disabled'
+
+/** 一个账户一次查询的归一化结果 */
+export interface QuotaWindow {
+  label: string // 归一化窗口名: "5h" | "wk" | "mo"
+  utilization: number // 0-100(已用)
+  resetEpoch?: number // 绝对 UTC 秒;倒计时由前端用 reset-now 计算
+}
+
+export interface UsageEntry {
+  vendorId: string
+  vendorName: string
+  accountId: string
+  accountName: string
+  kind: EntryKind
+  color: string
+  status: EntryStatus
+  /** 余额型主数值(或套餐型的金额剩余,如有) */
+  value?: number
+  unit?: string
+  utilization?: number // 0-100;余额型为 undefined
+  message?: string // 本地化 key 或原始错误文案
+  queriedAt: number // epoch 秒
+  windows: QuotaWindow[]
+}
+
+/* ── 厂商定义(vendors/*.toml → VendorDef,无密钥) ── */
+
+export interface Credentials {
+  key?: string
+  secret?: string
+  region?: string
+}
+
+export interface RequestSpec {
+  method: 'GET' | 'POST'
+  url: string
+  timeoutMs?: number
+  body?: string
+}
+
+export interface CheckSpec {
+  path: string
+  equals?: unknown
+  errorMessagePath?: string
+}
+
+export interface MatchSpec {
+  path: string
+  equals?: unknown
+  in?: unknown[]
+}
+
+export interface WindowSpec {
+  label: '5h' | 'wk' | 'mo' | string
+  /** 多元素列表模式:本窗口从哪个元素取(match 命中的第一个) */
+  match?: MatchSpec
+  /** 窗口存在条件(如 MiniMax 周桶要求 current_weekly_status == 1) */
+  condition?: MatchSpec
+  /** 直接百分比路径,可带 scale(如 ZenMux 0-1 需 ×100) */
+  percent?: { path: string; scale?: number }
+  /** 取补:percent = 100 - value(MiniMax 给的是剩余百分比) */
+  complement?: string
+  /** 计算:utilization = (total - minus) / total * 100(Kimi) */
+  percentFrom?: { total: string; minus: string }
+  /** 通用四则计算,fields 中的路径取值后按 expr 求值 */
+  computed?: { fields: Record<string, string>; expr: string }
+  /** 兜底窗口:未被任何 match 命中的元素按声明顺序填入(GLM 老套餐无 unit) */
+  fallback?: boolean
+  reset?: string // 重置时间路径(秒/毫秒/ISO 自适应)
+}
+
+export interface ParseSpec {
+  /** 元素列表路径;缺省时以响应根为唯一元素 */
+  listPath?: string
+  listMatch?: MatchSpec
+  // ── balance 型 ──
+  value?: { path: string; scale?: number }
+  computedValue?: { fields: Record<string, string>; expr: string }
+  unit?: string | { path: string }
+  // ── quota 型 ──
+  windows?: WindowSpec[]
+}
+
+export interface AuthSpec {
+  style: 'bearer' | 'raw' | 'header' | 'plugin'
+  /** style = "header" 时的自定义头名 */
+  headerName?: string
+  /** style = "plugin" 时的插件 id */
+  plugin?: string
+  /** 该厂商需要的凭证字段,设置界面据此渲染表单 */
+  fields: string[]
+}
+
+export interface VendorDef {
+  id: string
+  name: string
+  kind: EntryKind
+  logo?: string
+  color?: string
+  homepage?: string
+  defaultIntervalMs?: number
+  auth: AuthSpec
+  requests: RequestSpec[]
+  check?: CheckSpec
+  parse: ParseSpec
+}
+
+export interface AccountInfo {
+  vendorId: string
+  vendorName: string
+  color: string
+  accountId: string
+  accountName: string
+  /** 凭证是否已配置(不回传真值) */
+  hasCredential: boolean
+  enabled: boolean
+}
+
+/** 引擎内部的账户最小表示 */
+export interface AccountLike {
+  id: string
+  name: string
+}
+
+/* ── 配置与快照(主进程存储格式,UI 共用) ── */
+
+export interface WindowState {
+  x?: number
+  y?: number
+  width: number
+  height?: number
+}
+
+export interface DisplayConfig {
+  opacity: number // 0.2 - 1
+  theme: string
+  pollIntervalMs: number
+  autoCycleMs: number // 卡片自动翻页间隔,0 = 关闭
+  alwaysOnTop: boolean
+  clickThrough: boolean
+  widget: WindowState
+  alerts: {
+    warnPct: number
+    critPct: number
+    balanceMin: number
+    notify: boolean
+  }
+}
+
+export interface SchedulerSnapshot {
+  dataGen: number
+  entries: UsageEntry[]
+  vendorErrors: { file: string; message: string }[]
+}

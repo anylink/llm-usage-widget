@@ -1,0 +1,20 @@
+# OpenRouter — 账户余额(USD)。接口返回总额度与已用,剩余=两者之差(计算字段)
+id       = "openrouter"
+name     = "OpenRouter"
+kind     = "balance"
+color    = "#8B5CF6"
+homepage = "https://openrouter.ai/credits"
+defaultIntervalMs = 300000
+
+[auth]
+style  = "bearer"
+fields = ["key"]
+
+[[request]]
+method  = "GET"
+url     = "https://openrouter.ai/api/v1/credits"
+timeoutMs = 15000
+
+[parse]
+computedValue = { fields = { total = "data.total_credits", used = "data.total_usage" }, expr = "total - used" }
+unit = "USD"

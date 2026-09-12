@@ -1,0 +1,21 @@
+# DeepSeek — 账户余额(支持多币种,这里取第一种币种展示)
+# 端点经 CC Switch(MIT)与作者 ESP32 固件双重验证
+id       = "deepseek"
+name     = "DeepSeek"
+kind     = "balance"
+color    = "#4D6BFE"
+homepage = "https://platform.deepseek.com"
+defaultIntervalMs = 300000   # 余额型 5 分钟足够,避免打扰
+
+[auth]
+style  = "bearer"
+fields = ["key"]
+
+[[request]]
+method  = "GET"
+url     = "https://api.deepseek.com/user/balance"
+timeoutMs = 15000
+
+[parse]
+value = { path = "balance_infos[0].total_balance" }
+unit  = { path = "balance_infos[0].currency" }

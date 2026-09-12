@@ -1,0 +1,33 @@
+appId: com.anylink.llm-usage-widget
+productName: LLM Usage Widget
+directories:
+  output: dist
+  buildResources: build
+files:
+  - out/**
+  - package.json
+extraResources:
+  - from: resources/vendors
+    to: vendors
+    filter: ["**/*"]
+  - from: resources/icons
+    to: icons
+    filter: ["**/*"]
+win:
+  target:
+    - nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: false
+  artifactName: ${productName}-${version}-${arch}-setup.${ext}
+mac:
+  target:
+    - dmg
+  category: public.app-category.utilities
+  artifactName: ${productName}-${version}-${arch}.${ext}
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Utility
+  artifactName: ${productName}-${version}-${arch}.${ext}

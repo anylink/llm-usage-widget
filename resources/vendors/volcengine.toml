@@ -1,0 +1,15 @@
+# 火山方舟 Coding/Agent Plan — 唯一插件型厂商
+# 控制面 OpenAPI 需要火山引擎控制台的 AccessKey ID(key)/ SecretKey(secret),
+# 不是推理用的 Bearer Key;签名算法为火山变体 SigV4(见 src/main/engine/plugins/volcengine.ts)
+# 插件自动探测:先 GetAFPUsage(Agent Plan),无订阅回落 GetCodingPlanUsage
+id       = "volcengine"
+name     = "火山方舟"
+kind     = "quota"
+color    = "#1664FF"
+homepage = "https://console.volcengine.com/ark"
+defaultIntervalMs = 120000   # 控制面接口,轮询放缓
+
+[auth]
+style  = "plugin"
+plugin = "volcengine_sigv4"
+fields = ["key", "secret", "region"]   # region 默认 cn-beijing

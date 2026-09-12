@@ -1,0 +1,40 @@
+# 智谱 GLM Coding Plan — 套餐额度。注意:鉴权为裸 Key,不加 Bearer 前缀
+# data.limits[] 里 type ∈ {TOKENS_LIMIT, CREDIT_LIMIT};unit=3 → 5h 窗口,unit=6 → 周窗口
+# 老套餐(2026-02 前订阅)只回一条且无 unit 字段 → 由 fallback 窗口兜底
+id       = "glm"
+name     = "智谱 GLM"
+kind     = "quota"
+color    = "#3859FF"
+homepage = "https://open.bigmodel.cn"
+
+[auth]
+style  = "raw"                 # 裸 Key
+headerName = "Authorization"
+fields = ["key"]
+
+[[request]]
+method  = "GET"
+url     = "https://open.bigmodel.cn/api/monitor/usage/quota/limit"
+timeoutMs = 15000
+
+[parse]
+listPath  = "data.limits"
+listMatch = { path = "type", in = ["TOKENS_LIMIT", "CREDIT_LIMIT"] }
+
+[[parse.window]]
+label      = "5h"
+match      = { path = "unit", equals = 3 }
+percent    = { path = "percentage" }
+reset      = "nextResetTime"
+
+[[parse.window]]
+label      = "wk"
+match      = { path = "unit", equals = 6 }
+percent    = { path = "percentage" }
+reset      = "nextResetTime"
+
+[[parse.window]]
+label      = "5h"
+fallback   = true
+percent    = { path = "percentage" }
+reset      = "nextResetTime"

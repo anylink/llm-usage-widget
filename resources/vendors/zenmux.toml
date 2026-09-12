@@ -1,0 +1,31 @@
+# ZenMux — 套餐额度。CC Switch 的做法是直接 GET 用户配置的 base_url(该地址即返回用量)
+# usage_percentage 是 0-1 小数,scale ×100;5h 与 7 天两个窗口
+id       = "zenmux"
+name     = "ZenMux"
+kind     = "quota"
+color    = "#0EA5E9"
+homepage = "https://zenmux.ai"
+
+[auth]
+style  = "bearer"
+fields = ["key"]
+
+[[request]]
+method  = "GET"
+url     = "https://api.zenmux.ai/v1"
+timeoutMs = 15000
+
+[check]
+path = "success"
+equals = true
+errorMessagePath = "message"
+
+[[parse.window]]
+label   = "5h"
+percent = { path = "data.quota_5_hour.usage_percentage", scale = 100 }
+reset   = "data.quota_5_hour.resets_at"
+
+[[parse.window]]
+label   = "wk"
+percent = { path = "data.quota_7_day.usage_percentage", scale = 100 }
+reset   = "data.quota_7_day.resets_at"

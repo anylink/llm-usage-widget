@@ -1,0 +1,26 @@
+/* contextBridge:渲染进程唯一可用的 API 面(无 Node、无 remote) */
+import { contextBridge, ipcRenderer } from 'electron'
+
+const api = {
+  getSnapshot: (): Promise<unknown> => ipcRenderer.invoke('usage:snapshot'),
+  refresh: (): Promise<boolean> => ipcRenderer.invoke('usage:refresh'),
+  onUsageUpdated: (cb: (snapshot: unknown) => void): void => {
+    ipcRenderer.on('usage:updated', (_e, snapshot) => cb(snapshot))
+  },
+  getDisplay: (): Promise<unknown> => ipcRenderer.invoke('config:getDisplay'),
+  setDisplay: (patch: unknown): Promise<unknown> => ipcRenderer.invoke('config:setDisplay', patch),
+  onDisplayChanged: (cb: (cfg: unknown) => void): void => {
+    ipcRenderer.on('display:changed', (_e, cfg) => cb(cfg))
+  },
+  getVendorList: (): Promise<unknown> => ipcRenderer.invoke('config:vendorList'),
+  openVendorsDir: (): Promise<boolean> => ipcRenderer.invoke('config:openVendorsDir'),
+  openSettings: (): Promise<boolean> => ipcRenderer.invoke('win:openSettings'),
+  resizeWidget: (dWidth: number, dHeight: number): Promise<boolean> =>
+    ipcRenderer.invoke('win:resizeWidget', dWidth, dHeight),
+  encryptionAvailable: (): Promise<boolean> => ipcRenderer.invoke('env:encryptionAvailable'),
+  getVersion: (): Promise<string> => ipcRenderer.invoke('app:version')
+}
+
+export type Api = typeof api
+
+contextBridge.exposeInMainWorld('api', api)

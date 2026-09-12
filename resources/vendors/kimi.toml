@@ -1,0 +1,27 @@
+# Kimi For Coding(月之暗面)— Coding 套餐额度
+# 5h 窗口来自 limits[] 数组,周窗口来自 usage 对象;两者都只给 limit/remaining,
+# 利用率用计算 (limit - remaining) / limit * 100
+id       = "kimi"
+name     = "Kimi For Coding"
+kind     = "quota"
+color    = "#1B0F00"
+homepage = "https://platform.moonshot.cn"
+
+[auth]
+style  = "bearer"
+fields = ["key"]
+
+[[request]]
+method  = "GET"
+url     = "https://api.kimi.com/coding/v1/usages"
+timeoutMs = 15000
+
+[[parse.window]]
+label       = "5h"
+percentFrom = { total = "limits[0].detail.limit", minus = "limits[0].detail.remaining" }
+reset       = "limits[0].detail.resetTime"
+
+[[parse.window]]
+label       = "wk"
+percentFrom = { total = "usage.limit", minus = "usage.remaining" }
+reset       = "usage.resetTime"

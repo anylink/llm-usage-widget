@@ -1,0 +1,20 @@
+# 阶跃星辰 StepFun — 账户余额(CNY)
+id       = "stepfun"
+name     = "StepFun"
+kind     = "balance"
+color    = "#3E6FF4"
+homepage = "https://platform.stepfun.com"
+defaultIntervalMs = 300000
+
+[auth]
+style  = "bearer"
+fields = ["key"]
+
+[[request]]
+method  = "GET"
+url     = "https://api.stepfun.com/v1/accounts"
+timeoutMs = 15000
+
+[parse]
+value = { path = "balance" }
+unit  = "CNY"

@@ -1,0 +1,37 @@
+# MiniMax — Coding 套餐额度(CN 站 api.minimaxi.com;国际站 api.minimax.io)
+# 只取 model_name == "general" 的条目(跳过 video 等非编程模型)
+# 5h 桶给的是"剩余百分比" → complement 取补;周桶仅 current_weekly_status==1 时存在
+id       = "minimax"
+name     = "MiniMax"
+kind     = "quota"
+color    = "#F23F5D"
+homepage = "https://platform.minimaxi.com"
+
+[auth]
+style  = "bearer"
+fields = ["key"]
+
+[[request]]
+method  = "GET"
+url     = "https://api.minimaxi.com/v1/api/openplatform/coding_plan/remains"
+timeoutMs = 15000
+
+[check]
+path = "base_resp.status_code"
+equals = 0
+errorMessagePath = "base_resp.status_msg"
+
+[parse]
+listPath  = "model_remains"
+listMatch = { path = "model_name", equals = "general" }
+
+[[parse.window]]
+label      = "5h"
+complement = "current_interval_remaining_percent"
+reset      = "end_time"
+
+[[parse.window]]
+label      = "wk"
+condition  = { path = "current_weekly_status", equals = 1 }
+complement = "current_weekly_remaining_percent"
+reset      = "weekly_end_time"
