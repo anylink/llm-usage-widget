@@ -125,8 +125,12 @@ function bootstrap(): void {
       await shell.openPath(userVendorsDir())
       return true
     })
-    // 凭证读取(仅本机设置窗口使用):返回明文供表单编辑
-    ipcMain.handle('config:getCredential', (_e, vendorId: string, accountId: string) => {
+    // 凭证读取(仅设置窗口使用):返回明文供表单编辑。
+    // 悬浮窗共用同一 preload 但用不到此接口,校验 sender 收窄明文 Key 暴露面
+    ipcMain.handle('config:getCredential', (e, vendorId: string, accountId: string) => {
+      if (!windows.settings || windows.settings.isDestroyed() || e.sender !== windows.settings.webContents) {
+        return null
+      }
       return decryptAccounts()[vendorId]?.find((a) => a.id === accountId) ?? null
     })
     ipcMain.handle('config:saveCredential', (_e, vendorId: string, account: { id: string; name: string; key?: string; secret?: string; region?: string }) => {

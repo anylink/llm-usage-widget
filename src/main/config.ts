@@ -19,6 +19,14 @@ export type AccountsFile = Record<string, StoredAccount[]>
 
 const ENC_PREFIX = 'enc:v1:'
 
+/** 原子写入:先写临时文件再 rename,避免写入瞬间崩溃/断电截断 JSON
+    (accounts.json 损坏意味着全部 Key 重录,不可接受) */
+function writeFileAtomic(file: string, data: string): void {
+  const tmp = `${file}.tmp-${process.pid}`
+  fs.writeFileSync(tmp, data)
+  fs.renameSync(tmp, file)
+}
+
 function displayPath(): string {
   return path.join(app.getPath('userData'), 'display.json')
 }
@@ -52,7 +60,7 @@ export function loadDisplay(): DisplayConfig {
 }
 
 export function saveDisplay(cfg: DisplayConfig): void {
-  fs.writeFileSync(displayPath(), JSON.stringify(cfg, null, 2))
+  writeFileAtomic(displayPath(), JSON.stringify(cfg, null, 2))
 }
 
 export function isEncryptionAvailable(): boolean {
@@ -94,7 +102,7 @@ export function saveAccounts(accounts: AccountsFile): void {
   for (const [vendorId, list] of Object.entries(accounts)) {
     sealed[vendorId] = list.map((a) => ({ ...a, key: encryptSecret(a.key), secret: encryptSecret(a.secret) }))
   }
-  fs.writeFileSync(accountsPath(), JSON.stringify(sealed, null, 2))
+  writeFileAtomic(accountsPath(), JSON.stringify(sealed, null, 2))
 }
 
 /** 新增或更新一个账户凭证(设置页保存入口) */
@@ -138,11 +146,14 @@ export function decryptAccounts(): Record<string, { id: string; name: string; ke
 /** 首次运行:为每个内置厂商预建一个空账户占位,用户在设置里填 Key */
 export function ensureDefaultAccounts(vendors: VendorDef[]): AccountsFile {
   const stored = loadAccounts()
+  let changed = false
   for (const def of vendors) {
     if (!stored[def.id]) {
       stored[def.id] = [{ id: `${def.id}-1`, name: def.name }]
+      changed = true
     }
   }
-  saveAccounts(stored)
+  // 无变化时跳过落盘,避免每次启动都重写账户文件
+  if (changed) saveAccounts(stored)
   return stored
 }
