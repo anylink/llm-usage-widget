@@ -11,12 +11,12 @@ const STATUS_TEXT: Record<string, string> = {
   business: '接口返回错误'
 }
 
-/** 全部未配置时展示的示例数据(演示真实展示效果) */
+/** 全部未配置时展示的示例数据(套餐型,演示进度条/窗口/倒计时) */
 function demoEntry(): UsageEntry {
   const now = Math.floor(Date.now() / 1000)
   return {
     vendorId: 'demo',
-    vendorName: '示例厂商',
+    vendorName: '示例厂商 · 套餐',
     accountId: 'demo',
     accountName: '示例',
     kind: 'quota',
@@ -28,6 +28,23 @@ function demoEntry(): UsageEntry {
       { label: 'wk', utilization: 31, resetEpoch: now + 2 * 86400 },
       { label: 'mo', utilization: 12 }
     ]
+  }
+}
+
+/** 全部未配置时展示的示例数据(余额型,演示金额+币种) */
+function demoBalanceEntry(): UsageEntry {
+  return {
+    vendorId: 'demo-balance',
+    vendorName: '示例厂商 · 余额',
+    accountId: 'demo-balance',
+    accountName: '示例',
+    kind: 'balance',
+    color: '#10b981',
+    status: 'ok',
+    value: 238.5,
+    unit: 'CNY',
+    queriedAt: Math.floor(Date.now() / 1000),
+    windows: []
   }
 }
 
@@ -141,19 +158,21 @@ function Card({
   )
 }
 
-/* 列表模式:全部已配置厂商一屏展示 */
+/* 列表模式:全部已配置厂商一屏展示(全部未配置时以两行示例演示套餐/余额两种形态) */
 function ListMode({
   entries,
-  display
+  display,
+  isDemo
 }: {
   entries: UsageEntry[]
   display: DisplayConfig
+  isDemo?: boolean
 }) {
   const alerts = display.alerts
   return (
     <div className="card list" id="list-card">
       <div className="head drag">
-        <span className="name">全部厂商 ({entries.length})</span>
+        <span className="name">{isDemo ? '示例展示' : `全部厂商 (${entries.length})`}</span>
       </div>
       <div className="list-body">
         {entries.map((e) => {
@@ -198,13 +217,16 @@ function ListMode({
             </div>
           )
         })}
+        {isDemo && <div className="demo-note">示例数据 · 套餐与余额两种形态,配置任意厂商后展示真实用量</div>}
       </div>
       <div className="foot drag">
-        <span className="foot-left" />
+        <span className="foot-left">{isDemo ? '未配置' : ''}</span>
         <span className="foot-status">
-          {entries.every((e) => e.status === 'ok')
-            ? fmtAge(entries[0]?.queriedAt ?? Date.now() / 1000)
-            : '部分厂商状态异常'}
+          {isDemo
+            ? ''
+            : entries.every((e) => e.status === 'ok')
+              ? fmtAge(entries[0]?.queriedAt ?? Date.now() / 1000)
+              : '部分厂商状态异常'}
         </span>
       </div>
     </div>
@@ -245,8 +267,37 @@ export function Widget() {
   const entries = snapshot?.entries ?? []
   const configured = entries.filter((e) => e.status !== 'no-key')
 
-  // 全部未配置:示例展示
+  // 全部未配置:示例展示(轮播显单卡片;列表显套餐+余额两行)
   if (configured.length === 0) {
+    if (display.mode === 'list') {
+      return (
+        <div
+          className="root"
+          style={{ ['--bg-alpha']: String(display.bgOpacity) } as React.CSSProperties}
+        >
+          <ListMode entries={[demoEntry(), demoBalanceEntry()]} display={display} isDemo />
+          <div
+            className="resize-handle no-drag"
+            onMouseDown={(e) => {
+              e.preventDefault()
+              let lastX = e.screenX
+              let lastY = e.screenY
+              const move = (ev: MouseEvent): void => {
+                void window.api.resizeWidget(ev.screenX - lastX, ev.screenY - lastY)
+                lastX = ev.screenX
+                lastY = ev.screenY
+              }
+              const up = (): void => {
+                window.removeEventListener('mousemove', move)
+                window.removeEventListener('mouseup', up)
+              }
+              window.addEventListener('mousemove', move)
+              window.addEventListener('mouseup', up)
+            }}
+          />
+        </div>
+      )
+    }
     return (
       <div
         className="root"
