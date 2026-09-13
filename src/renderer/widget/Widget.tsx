@@ -78,15 +78,29 @@ function fmtAge(queriedAt: number, t: TFunction): string {
   return t('widget.hoursAgo', { count: Math.floor(secs / 3600) })
 }
 
-function barColor(u: number, alerts: DisplayConfig['alerts']): string {
-  if (u >= alerts.critPct) return 'var(--danger)'
-  if (u >= alerts.warnPct) return 'var(--warn)'
+/** 该厂商生效的阈值(全局默认 + 每厂商覆盖,与主进程 AlertManager 同语义) */
+function effAlerts(vendorId: string, alerts: DisplayConfig['alerts']): { warnPct: number; critPct: number } {
+  const ov = alerts.overrides?.[vendorId] ?? {}
+  return { warnPct: ov.warnPct ?? alerts.warnPct, critPct: ov.critPct ?? alerts.critPct }
+}
+
+function barColor(u: number, eff: { warnPct: number; critPct: number }): string {
+  if (u >= eff.critPct) return 'var(--danger)'
+  if (u >= eff.warnPct) return 'var(--warn)'
   return 'var(--ok)'
 }
 
-function Monogram({ name, color }: { name: string; color: string }) {
+/** 主窗口告警级别:'crit' > 'warn' > ''(用于边框呼吸光) */
+function alertLevel(u: number, eff: { warnPct: number; critPct: number }): '' | 'warn' | 'crit' {
+  return u >= eff.critPct ? 'crit' : u >= eff.warnPct ? 'warn' : ''
+}
+
+function Monogram({ name, color, dim }: { name: string; color: string; dim?: boolean }) {
   return (
-    <span className="logo" style={{ background: color }}>
+    <span
+      className="logo"
+      style={{ background: color, filter: dim ? 'grayscale(1)' : undefined, opacity: dim ? 0.5 : 1 }}
+    >
       {name.charAt(0).toUpperCase()}
     </span>
   )
@@ -182,12 +196,18 @@ function Card({
   const { t } = useTranslation()
   const primary = entry.windows?.[0]
   const alerts = display.alerts
+  const eff = effAlerts(entry.vendorId, alerts)
+  const level = primary && entry.kind === 'quota' ? alertLevel(primary.utilization, eff) : ''
   const errText = statusText(t, entry.status)
   return (
-    <div className="card" style={{ ['--accent' as string]: entry.color }}>
+    <div className={`card ${level ? `alert-${level}` : ''}`} style={{ ['--accent' as string]: entry.color }}>
       {toolbar}
       <div className="head drag">
-        <Monogram name={entry.vendorName} color={entry.color} />
+        <Monogram
+          name={entry.vendorName}
+          color={entry.color}
+          dim={entry.status !== 'ok' && entry.status !== 'updating'}
+        />
         <span className="name" title={`${entry.vendorName} · ${entry.accountName}`}>
           {entry.vendorName}
         </span>
@@ -202,11 +222,11 @@ function Card({
                 className="bar-fill"
                 style={{
                   width: `${Math.min(100, primary.utilization)}%`,
-                  background: barColor(primary.utilization, alerts)
+                  background: barColor(primary.utilization, eff)
                 }}
               />
             </div>
-            <div className="pct" style={{ color: barColor(primary.utilization, alerts) }}>
+            <div className="pct" style={{ color: barColor(primary.utilization, eff) }}>
               {primary.utilization}%
             </div>
             <div className="windows">
@@ -218,7 +238,7 @@ function Card({
                       className="win-bar-fill"
                       style={{
                         width: `${Math.min(100, w.utilization)}%`,
-                        background: barColor(w.utilization, alerts)
+                        background: barColor(w.utilization, eff)
                       }}
                     />
                   </span>
@@ -234,7 +254,14 @@ function Card({
             <span className="balance-unit">{entry.unit}</span>
           </div>
         ) : (
-          <div className={`state ${entry.status === 'auth' ? 'state-err' : ''}`}>{errText || t('status.updating')}</div>
+          <div className={`state ${entry.status === 'auth' ? 'state-err' : ''}`}>
+            <span>{errText || t('status.updating')}</span>
+            {entry.status === 'auth' && (
+              <button className="btn setup state-go" onClick={() => void window.api.openSettings()}>
+                {t('widget.goSettings')}
+              </button>
+            )}
+          </div>
         )}
         {isDemo && <div className="demo-note">{t('widget.demoNote')}</div>}
       </div>
@@ -263,8 +290,20 @@ function ListMode({
 }) {
   const { t } = useTranslation()
   const alerts = display.alerts
+  // 卡片级呼吸光:任一厂商 crit → 红,否则任一 warn → 橙
+  let level: '' | 'warn' | 'crit' = ''
+  for (const e of entries) {
+    const primary = e.kind === 'quota' ? e.windows?.[0] : undefined
+    if (!primary) continue
+    const lv = alertLevel(primary.utilization, effAlerts(e.vendorId, alerts))
+    if (lv === 'crit') {
+      level = 'crit'
+      break
+    }
+    if (lv === 'warn') level = 'warn'
+  }
   return (
-    <div className="card list" id="list-card">
+    <div className={`card list ${level ? `alert-${level}` : ''}`} id="list-card">
       {toolbar}
       <div className="head drag">
         <span className="name">{isDemo ? t('widget.listDemoTitle') : t('widget.listTitle', { count: entries.length })}</span>
@@ -272,9 +311,14 @@ function ListMode({
       <div className="list-body">
         {entries.map((e) => {
           const primary = e.windows?.[0]
+          const eff = effAlerts(e.vendorId, alerts)
           return (
             <div className="li-row" key={e.accountId}>
-              <Monogram name={e.vendorName} color={e.color} />
+              <Monogram
+                name={e.vendorName}
+                color={e.color}
+                dim={e.status !== 'ok' && e.status !== 'updating'}
+              />
               <div className="li-main">
                 <div className="li-name">
                   {e.vendorName}
@@ -288,7 +332,7 @@ function ListMode({
                       className="win-bar-fill"
                       style={{
                         width: `${Math.min(100, primary.utilization)}%`,
-                        background: barColor(primary.utilization, alerts)
+                        background: barColor(primary.utilization, eff)
                       }}
                     />
                   </span>
@@ -297,7 +341,7 @@ function ListMode({
                 )}
               </div>
               {e.kind === 'quota' && primary ? (
-                <span className="li-val" style={{ color: barColor(primary.utilization, alerts) }}>
+                <span className="li-val" style={{ color: barColor(primary.utilization, eff) }}>
                   {primary.utilization}%
                 </span>
               ) : e.kind === 'balance' && e.status === 'ok' ? (
@@ -305,7 +349,11 @@ function ListMode({
                   {e.value} <em>{e.unit}</em>
                 </span>
               ) : (
-                <span className="li-val li-err" title={statusText(t, e.status)}>
+                <span
+                  className={`li-val li-err ${e.status === 'auth' ? 'li-go' : ''}`}
+                  title={statusText(t, e.status)}
+                  onClick={e.status === 'auth' ? () => void window.api.openSettings() : undefined}
+                >
                   {e.status === 'updating' ? '…' : '!'}
                 </span>
               )}

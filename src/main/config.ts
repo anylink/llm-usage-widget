@@ -48,7 +48,14 @@ export function defaultDisplay(): DisplayConfig {
     locked: false,
     collapsed: false,
     widget: { width: 300 },
-    alerts: { warnPct: 70, critPct: 90, balanceMin: 10, bubble: true, notify: true }
+    alerts: {
+      warnPct: 70,
+      critPct: 90,
+      balanceMin: 10,
+      bubble: true,
+      notify: true,
+      overrides: {}
+    }
   }
 }
 

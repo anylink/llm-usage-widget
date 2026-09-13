@@ -18,6 +18,7 @@
     "demoNote": "示例数据 · 配置任意厂商后展示真实用量",
     "demoListNote": "示例数据 · 套餐与余额两种形态,配置任意厂商后展示真实用量",
     "notConfigured": "未配置",
+    "goSettings": "去设置",
     "justUpdated": "刚刚更新",
     "minutesAgo": "{{count}} 分钟前更新",
     "hoursAgo": "{{count}} 小时前更新",
@@ -126,6 +127,7 @@
       "clickThrough": "点击穿透(鼠标穿透到桌面)",
       "refreshCycle": "刷新与轮播",
       "pollInterval": "轮询间隔:{{sec}} 秒(余额型厂商固定 5 分钟)",
+      "pollIntervalMin": "轮询间隔:{{min}} 分钟(余额型厂商固定 5 分钟)",
       "autoCycleOff": "自动翻页:关闭",
       "autoCycle": "自动翻页:{{sec}} 秒"
     },
@@ -139,7 +141,10 @@
       "warn": "预警阈值(变橙):{{pct}}%",
       "crit": "告警阈值(变红):{{pct}}%",
       "balance": "余额型",
-      "balanceMin": "余额下限(低于此值提示,单位随厂商币种):{{min}}"
+      "balanceMin": "余额下限(低于此值提示,单位随厂商币种):{{min}}",
+      "overrides": "每厂商覆盖",
+      "overridesHint": "留空/不勾 = 使用上方全局默认;余额下限单位随厂商币种。",
+      "balanceMinShort": "余额下限"
     },
     "about": {
       "tagline": "桌面悬浮的大模型用量仪表。",

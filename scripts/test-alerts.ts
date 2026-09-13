@@ -128,4 +128,26 @@ function levels(entries: UsageEntry[], m = new AlertManager(T)): string[] {
   console.log('✓ resolveLocale(显式优先/auto 跟随系统/回退)')
 }
 
+/* 每厂商覆盖(设计 §10.2):未覆盖字段回落全局默认 */
+{
+  const lv = (events: ReturnType<AlertManager['evaluate']>): string[] =>
+    events.map((e) => `${e.vendorId}:${e.level}`)
+  const m = new AlertManager(T)
+  const withOv = { ...CFG, overrides: { ds: { balanceMin: 20 }, kimi: { warnPct: 50 } } }
+  assert.deepEqual(
+    lv(m.evaluate([balanceEntry(15)], withOv)),
+    ['ds:warn'],
+    '15 低于覆盖后的 20 → 触发(全局 10 不触发)'
+  )
+  assert.deepEqual(
+    lv(m.evaluate([quotaEntry(55)], withOv)),
+    ['kimi:warn'],
+    '55 ≥ 覆盖后的 50 → 触发(全局 70 不触发)'
+  )
+  const m2 = new AlertManager(T)
+  const other = { ...balanceEntry(15), vendorId: 'other', accountId: 'other-1' }
+  assert.deepEqual(lv(m2.evaluate([other], withOv)), [], '未覆盖厂商回落全局 10,15 不触发')
+  console.log('✓ 每厂商覆盖(balanceMin/warnPct/回落)')
+}
+
 console.log('\n全部通过')

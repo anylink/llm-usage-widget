@@ -347,3 +347,37 @@ button.ghost {
   margin: 12px 32px 0;
   max-width: 556px;
 }
+
+/* 提醒页:每厂商覆盖行 */
+.ov-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #eceef1;
+}
+.ov-row:last-child {
+  border-bottom: none;
+}
+.ov-row strong {
+  font-size: 12.5px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ov-row .mono {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  font-size: 10px;
+}
+.ov-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #5c6470;
+  white-space: nowrap;
+}

@@ -30,6 +30,13 @@ export class AlertManager {
     const events: AlertEvent[] = []
     for (const e of entries) {
       if (e.status !== 'ok') continue
+      // 每厂商覆盖(设计 §10.2):未给出的字段回落全局默认
+      const ov = cfg.overrides?.[e.vendorId] ?? {}
+      const eff = {
+        warnPct: ov.warnPct ?? cfg.warnPct,
+        critPct: ov.critPct ?? cfg.critPct,
+        balanceMin: ov.balanceMin ?? cfg.balanceMin
+      }
       const st = this.state.get(e.accountId) ?? { level: 0 as const }
 
       if (e.kind === 'quota') {
@@ -40,20 +47,21 @@ export class AlertManager {
         if (w.resetEpoch && st.resetEpoch && st.resetEpoch !== w.resetEpoch) st.level = 0
         if (w.resetEpoch) st.resetEpoch = w.resetEpoch
 
-        const up = w.utilization >= cfg.critPct ? 2 : w.utilization >= cfg.warnPct ? 1 : 0
-        const down = w.utilization >= cfg.critPct ? 2 : w.utilization >= cfg.warnPct - HYSTERESIS_PCT ? 1 : 0
+        const up = w.utilization >= eff.critPct ? 2 : w.utilization >= eff.warnPct ? 1 : 0
+        const down =
+          w.utilization >= eff.critPct ? 2 : w.utilization >= eff.warnPct - HYSTERESIS_PCT ? 1 : 0
         if (up > st.level) {
           st.level = up as 1 | 2
-          events.push(this.event(e, up === 2 ? 'crit' : 'warn', w.utilization, w.resetEpoch, cfg))
+          events.push(this.event(e, up === 2 ? 'crit' : 'warn', w.utilization, w.resetEpoch, eff))
         } else if (down === 0 && st.level > 0) {
           // 部分回落(crit→warn 区间)静默保留已触发标记,完全恢复才清零
           st.level = 0
         }
       } else {
-        const low = e.value !== undefined && e.value < cfg.balanceMin
+        const low = e.value !== undefined && e.value < eff.balanceMin
         if (low && e.value !== undefined && st.level === 0) {
           st.level = 1
-          events.push(this.event(e, 'warn', e.value, undefined, cfg))
+          events.push(this.event(e, 'warn', e.value, undefined, eff))
         } else if (!low && st.level > 0) {
           st.level = 0
         }
@@ -74,7 +82,7 @@ export class AlertManager {
     level: 'warn' | 'crit',
     value: number,
     resetEpoch: number | undefined,
-    cfg: AlertsConfig
+    eff: { warnPct: number; critPct: number; balanceMin: number }
   ): AlertEvent {
     const label = e.windows[0]?.label ?? ''
     return {
@@ -86,7 +94,7 @@ export class AlertManager {
           ? resetEpoch
             ? this.t('alerts.quotaMsg', { label, pct: value, time: fmtReset(resetEpoch) })
             : this.t('alerts.quotaMsgNoReset', { label, pct: value })
-          : this.t('alerts.balanceMsg', { value, unit: e.unit ?? '', min: cfg.balanceMin }),
+          : this.t('alerts.balanceMsg', { value, unit: e.unit ?? '', min: eff.balanceMin }),
       level,
       kind: e.kind,
       color: e.color,

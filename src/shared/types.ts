@@ -177,6 +177,8 @@ export interface DisplayConfig {
     bubble: boolean
     /** L3 系统通知 */
     notify: boolean
+    /** 每厂商覆盖(设计 §10.2);未给出的字段回落全局默认 */
+    overrides?: Record<string, { warnPct?: number; critPct?: number; balanceMin?: number; notify?: boolean }>
   }
 }
 

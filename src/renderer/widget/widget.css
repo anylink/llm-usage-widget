@@ -162,6 +162,7 @@ body,
 }
 
 .card {
+  position: relative; /* 呼吸光环 ::after 的定位基准 */
   flex: none; /* 内容自然高度;两种模式的窗口高度都由自适应逻辑按内容设定 */
   display: flex;
   flex-direction: column;
@@ -173,6 +174,34 @@ body,
   padding: 10px 12px;
   /* 不加 box-shadow:透明窗口上阴影会画到桌面上且被窗口矩形直角裁切,
      形成灰晕和方角;悬浮感由背景色+边框承担 */
+}
+
+/* L1 边框呼吸光(设计 §10.1):warn 染橙,crit 染红并脉冲;
+   用 ::after 独立光环而非 box-shadow(透明窗口上阴影会画出灰晕和直角裁切) */
+.card.alert-warn {
+  border-color: color-mix(in srgb, var(--warn) 60%, transparent);
+}
+.card.alert-crit {
+  border-color: var(--danger);
+}
+.card.alert-crit::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--danger);
+  pointer-events: none;
+  opacity: 0;
+  animation: ring-pulse 1.8s ease-in-out infinite;
+}
+@keyframes ring-pulse {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.55;
+  }
 }
 
 .drag {
@@ -324,12 +353,25 @@ body,
 }
 
 .state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 12px;
   color: var(--text-secondary);
   padding: 4px 0;
 }
 .state-err {
   color: var(--danger);
+}
+/* 鉴权失败的"去设置"小按钮(§9.2 错误态) */
+.state .state-go {
+  height: 22px;
+  padding: 0 10px;
+  font-size: 11.5px;
+}
+.li-go {
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .foot {

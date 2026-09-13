@@ -179,7 +179,7 @@ export function Settings() {
   } else if (page === 'display' && display) {
     content = <DisplayPage display={display} themes={themes} onChange={patchDisplay} />
   } else if (page === 'alerts' && display) {
-    content = <AlertsPage display={display} onChange={patchDisplay} />
+    content = <AlertsPage display={display} vendors={data?.vendors ?? []} onChange={patchDisplay} />
   } else if (page === 'about') {
     content = <AboutPage version={version} updateState={updateState} />
   } else {
@@ -525,12 +525,14 @@ function DisplayPage({
       <section>
         <h2>{t(`${S}.refreshCycle`)}</h2>
         <label>
-          {t(`${S}.pollInterval`, { sec: Math.round(display.pollIntervalMs / 1000) })}
+          {display.pollIntervalMs >= 60_000
+            ? t(`${S}.pollIntervalMin`, { min: Math.round(display.pollIntervalMs / 60_000) })
+            : t(`${S}.pollInterval`, { sec: Math.round(display.pollIntervalMs / 1000) })}
           <input
             type="range"
             min={30}
-            max={600}
-            step={10}
+            max={1800}
+            step={30}
             value={display.pollIntervalMs / 1000}
             onChange={(e) => onChange({ pollIntervalMs: Number(e.target.value) * 1000 })}
           />
@@ -554,16 +556,25 @@ function DisplayPage({
 /* ── 提醒页 ── */
 function AlertsPage({
   display,
+  vendors,
   onChange
 }: {
   display: DisplayConfig
+  vendors: VendorRow[]
   onChange(patch: Partial<DisplayConfig>): void
 }) {
+  const { t } = useTranslation()
+  const S = 'settings.alertsPage'
   const a = display.alerts
   const set = (patch: Partial<DisplayConfig['alerts']>): void =>
     onChange({ alerts: { ...a, ...patch } })
-  const { t } = useTranslation()
-  const S = 'settings.alertsPage'
+  /** 写入单厂商覆盖;值为 undefined 表示回落全局默认 */
+  const setOv = (
+    vendorId: string,
+    patch: Partial<NonNullable<DisplayConfig['alerts']['overrides']>[string]>
+  ): void => {
+    set({ overrides: { ...a.overrides, [vendorId]: { ...a.overrides?.[vendorId], ...patch } } })
+  }
   return (
     <div className="page">
       <h1>{t(`${S}.title`)}</h1>
@@ -627,6 +638,46 @@ function AlertsPage({
             onChange={(e) => set({ balanceMin: Number(e.target.value) })}
           />
         </label>
+      </section>
+      <section>
+        <h2>{t(`${S}.overrides`)}</h2>
+        <p className="hint" style={{ marginTop: 0 }}>
+          {t(`${S}.overridesHint`)}
+        </p>
+        {vendors.map((v) => {
+          const ov = a.overrides?.[v.id] ?? {}
+          return (
+            <div className="ov-row" key={v.id}>
+              <span className="mono" style={{ background: v.color }}>
+                {v.name.charAt(0)}
+              </span>
+              <strong>{v.name}</strong>
+              {v.kind === 'balance' && (
+                <label className="ov-field">
+                  {t(`${S}.balanceMinShort`)}
+                  <input
+                    type="number"
+                    min={0}
+                    style={{ width: 76 }}
+                    placeholder={String(a.balanceMin)}
+                    value={ov.balanceMin ?? ''}
+                    onChange={(e) =>
+                      setOv(v.id, { balanceMin: e.target.value === '' ? undefined : Number(e.target.value) })
+                    }
+                  />
+                </label>
+              )}
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={ov.notify ?? a.notify}
+                  onChange={(e) => setOv(v.id, { notify: e.target.checked })}
+                />
+                {t(`${S}.notify`)}
+              </label>
+            </div>
+          )
+        })}
       </section>
     </div>
   )

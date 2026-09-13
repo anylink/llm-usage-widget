@@ -48,11 +48,13 @@ function bootstrap(): void {
     const alertManager = new AlertManager((key, params) => i18n.t(key, params))
     const scheduler = new Scheduler(createPluginRegistry(), displayCfg, (snapshot) => {
       for (const ev of alertManager.evaluate(snapshot.entries, displayCfg.alerts)) {
+        // L3 系统通知可按厂商覆盖开关(设计 §10.2);气泡为全局开关
+        const notifyOn = displayCfg.alerts.overrides?.[ev.vendorId]?.notify ?? displayCfg.alerts.notify
         if (displayCfg.alerts.bubble) {
           const w = windows.widget
           if (w && !w.isDestroyed() && w.isVisible()) w.webContents.send('alerts:bubble', ev)
         }
-        if (displayCfg.alerts.notify && Notification.isSupported()) {
+        if (notifyOn && Notification.isSupported()) {
           const n = new Notification({ title: ev.title, body: ev.message })
           n.on('click', () => windows.openSettings(i18n.t('app.settingsTitle')))
           n.show()

@@ -18,6 +18,7 @@
     "demoNote": "Demo data · real usage appears once any vendor is configured",
     "demoListNote": "Demo data · plan & balance layouts; real usage appears once any vendor is configured",
     "notConfigured": "Not configured",
+    "goSettings": "Go to settings",
     "justUpdated": "Updated just now",
     "minutesAgo": "Updated {{count}} min ago",
     "hoursAgo": "Updated {{count}} h ago",
@@ -126,6 +127,7 @@
       "clickThrough": "Click-through (mouse passes to desktop)",
       "refreshCycle": "Refresh & carousel",
       "pollInterval": "Poll interval: {{sec}}s (balance vendors fixed at 5 min)",
+      "pollIntervalMin": "Poll interval: {{min}} min (balance vendors fixed at 5 min)",
       "autoCycleOff": "Auto-advance: off",
       "autoCycle": "Auto-advance: {{sec}}s"
     },
@@ -139,7 +141,10 @@
       "warn": "Warning (turns orange): {{pct}}%",
       "crit": "Critical (turns red): {{pct}}%",
       "balance": "Balance type",
-      "balanceMin": "Balance minimum (alert below this, in the vendor's currency): {{min}}"
+      "balanceMin": "Balance minimum (alert below this, in the vendor's currency): {{min}}",
+      "overrides": "Per-vendor overrides",
+      "overridesHint": "Leave blank / unchecked = use the global defaults above; balance minimum is in the vendor's currency.",
+      "balanceMinShort": "Min balance"
     },
     "about": {
       "tagline": "A floating gauge for LLM usage on your desktop.",
