@@ -228,6 +228,11 @@ function Card({
         <span className="name" title={`${entry.vendorName} · ${entry.accountName}`}>
           {entry.vendorName}
         </span>
+        {entry.accountName && entry.accountName !== entry.vendorName && (
+          <span className="acc" title={entry.accountName}>
+            {entry.accountName}
+          </span>
+        )}
         <span className="head-btns no-drag">{extraHead}</span>
       </div>
 
@@ -343,7 +348,8 @@ function ListMode({
               <div className="li-main">
                 <div className="li-name">
                   {e.vendorName}
-                  {entries.some((x) => x.vendorId === e.vendorId && x.accountId !== e.accountId) && (
+                  {(e.accountName !== e.vendorName ||
+                    entries.some((x) => x.vendorId === e.vendorId && x.accountId !== e.accountId)) && (
                     <span className="li-acc">· {e.accountName}</span>
                   )}
                 </div>
