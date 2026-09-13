@@ -69,6 +69,26 @@
       "about": "About"
     },
     "encryptionWarn": "⚠ System encryption unavailable — API keys will be stored in plain text!",
+    "onboard": {
+      "title": "Welcome to LLM Usage Widget",
+      "desc": "Three steps to see your LLM plan usage & balance in real time:",
+      "step1": "Click a vendor in the list below to open its config page",
+      "step2": "Paste the platform's API key and save (takes effect immediately)",
+      "step3": "Back on the desktop, the widget shows real usage; hover the top for toolbar buttons",
+      "popular": "Popular vendors:"
+    },
+    "import": {
+      "title": "Import from CC Switch",
+      "scan": "Scan CC Switch data",
+      "notFound": "CC Switch database not found",
+      "readError": "Read failed",
+      "empty": "No keyed configs found in the database",
+      "hint": "Only official-platform keys can be imported; relays (new-api etc.) are not supported and marked as unrecognized.",
+      "unknown": "Unrecognized",
+      "importSel": "Import selected",
+      "close": "Close",
+      "imported": "Imported {{n}} account(s) and hot-reloaded"
+    },
     "vendors": {
       "title": "Vendors",
       "desc": "Click a vendor to configure it. Saving takes effect immediately; saved configs are loaded on every start.",

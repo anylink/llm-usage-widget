@@ -21,6 +21,9 @@ const api = {
     ipcRenderer.invoke('vendor:test', def, cred),
   saveVendor: (def: unknown): Promise<{ ok: boolean; file?: string; error?: string }> =>
     ipcRenderer.invoke('vendor:save', def),
+  scanCcSwitch: (): Promise<unknown> => ipcRenderer.invoke('ccswitch:scan'),
+  importCcSwitch: (items: { vendorId: string; name: string; key: string }[]): Promise<number> =>
+    ipcRenderer.invoke('ccswitch:import', items),
   getThemes: (): Promise<unknown> => ipcRenderer.invoke('themes:list'),
   onThemesChanged: (cb: (t: unknown) => void): void => {
     ipcRenderer.on('themes:changed', (_e, t) => cb(t))

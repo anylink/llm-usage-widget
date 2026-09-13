@@ -28,6 +28,20 @@ interface CredentialForm {
   region: string
 }
 
+interface CcSwitchEntry {
+  name: string
+  baseUrl: string
+  vendorId: string | null
+  keyPreview: string
+  key: string
+}
+interface CcSwitchScan {
+  available: boolean
+  path: string
+  entries: CcSwitchEntry[]
+  error?: string
+}
+
 /* 凭证字段 → i18n key(文案在 locales) */
 const FIELD_KEYS: Record<string, string> = {
   key: 'fieldKey',
@@ -183,6 +197,7 @@ export function Settings() {
           setEditorId(null)
           setPage('editor')
         }}
+        onImported={loadList}
         version={version}
         enc={enc}
       />
@@ -242,21 +257,73 @@ function VendorListPage({
   data,
   onOpen,
   onNewEditor,
+  onImported,
   version,
   enc
 }: {
   data: VendorListResp | null
   onOpen(id: string): void
   onNewEditor(): void
+  onImported(): void
   version: string
   enc: boolean
 }) {
   const { t } = useTranslation()
   const S = 'settings.vendors'
+  const I = 'settings.import'
+  const [scan, setScan] = useState<CcSwitchScan | null>(null)
+  const [sel, setSel] = useState<Set<number>>(new Set())
+  const [importedMsg, setImportedMsg] = useState('')
+
+  const configuredVendors = data
+    ? data.vendors.filter((v) => (data.accounts[v.id] ?? []).some((a) => a.hasKey)).length
+    : 0
+
+  const runScan = async (): Promise<void> => {
+    setImportedMsg('')
+    setSel(new Set())
+    setScan((await window.api.scanCcSwitch()) as CcSwitchScan)
+  }
+  const doImport = async (): Promise<void> => {
+    if (!scan) return
+    const items = [...sel]
+      .map((i) => scan.entries[i])
+      .filter((e) => e.vendorId)
+      .map((e) => ({ vendorId: e.vendorId as string, name: e.name, key: e.key }))
+    const n = await window.api.importCcSwitch(items)
+    setScan(null)
+    setImportedMsg(t(`${I}.imported`, { n }))
+    if (n > 0) onImported()
+  }
+
   return (
     <div className="page">
       <h1>{t(`${S}.title`)}</h1>
       <p className="desc">{t(`${S}.desc`)}</p>
+      {data && configuredVendors === 0 && (
+        <div className="onboard">
+          <h2>{t('settings.onboard.title')}</h2>
+          <p>{t('settings.onboard.desc')}</p>
+          <ol>
+            <li>{t('settings.onboard.step1')}</li>
+            <li>{t('settings.onboard.step2')}</li>
+            <li>{t('settings.onboard.step3')}</li>
+          </ol>
+          <p className="hint" style={{ marginTop: 8 }}>
+            {t('settings.onboard.popular')}
+          </p>
+          <div className="check-row">
+            {['deepseek', 'kimi', 'glm', 'minimax', 'openrouter'].map((id) => {
+              const v = data.vendors.find((x) => x.id === id)
+              return v ? (
+                <button key={id} className="ghost" onClick={() => onOpen(id)}>
+                  {v.name}
+                </button>
+              ) : null
+            })}
+          </div>
+        </div>
+      )}
       <section>
         {data?.vendors.map((v) => {
           const accs = data.accounts[v.id] ?? []
@@ -298,6 +365,75 @@ function VendorListPage({
             enc: enc ? t(`${S}.encAvailable`) : t(`${S}.encUnavailable`)
           })}
         </div>
+      </section>
+      <section>
+        <h2>{t(`${I}.title`)}</h2>
+        {!scan && (
+          <div className="check-row" style={{ alignItems: 'center' }}>
+            <button className="ghost" onClick={() => void runScan()}>
+              {t(`${I}.scan`)}
+            </button>
+            {importedMsg && <span className="hint">{importedMsg}</span>}
+          </div>
+        )}
+        {scan && !scan.available && (
+          <p className="hint">
+            {t(`${I}.notFound`)}: {scan.path}
+          </p>
+        )}
+        {scan?.error && (
+          <p className="hint">
+            {t(`${I}.readError`)}: {scan.error}
+          </p>
+        )}
+        {scan && scan.available && !scan.error && scan.entries.length === 0 && (
+          <p className="hint">{t(`${I}.empty`)}</p>
+        )}
+        {scan && scan.entries.length > 0 && (
+          <>
+            <p className="hint" style={{ marginTop: 0 }}>
+              {t(`${I}.hint`)}
+            </p>
+            <div className="import-list">
+              {scan.entries.map((e, i) => {
+                const vName = e.vendorId ? (data?.vendors.find((v) => v.id === e.vendorId)?.name ?? e.vendorId) : null
+                return (
+                  <div className="ov-row" key={i}>
+                    <input
+                      type="checkbox"
+                      disabled={!e.vendorId}
+                      checked={sel.has(i)}
+                      onChange={() =>
+                        setSel((prev) => {
+                          const next = new Set(prev)
+                          if (next.has(i)) next.delete(i)
+                          else next.add(i)
+                          return next
+                        })
+                      }
+                    />
+                    <strong>{e.name}</strong>
+                    <span className="hint" style={{ flex: 1 }}>
+                      {e.baseUrl || '—'}
+                    </span>
+                    <span className={`badge ${e.vendorId ? 'ok' : 'todo'}`}>
+                      {vName ?? t(`${I}.unknown`)}
+                    </span>
+                    <span className="hint">{e.keyPreview}</span>
+                  </div>
+                )
+              })}
+            </div>
+            <div className="check-row" style={{ marginTop: 8 }}>
+              <button className="primary" disabled={sel.size === 0} onClick={() => void doImport()}>
+                {t(`${I}.importSel`)}
+              </button>
+              <button className="ghost" onClick={() => setScan(null)}>
+                {t(`${I}.close`)}
+              </button>
+            </div>
+          </>
+        )}
       </section>
     </div>
   )

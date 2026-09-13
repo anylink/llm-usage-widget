@@ -69,6 +69,26 @@
       "about": "关于"
     },
     "encryptionWarn": "⚠ 系统加密不可用,API Key 将以明文保存在本地!",
+    "onboard": {
+      "title": "欢迎使用 LLM Usage Widget",
+      "desc": "三步开始实时查看你的大模型套餐用量与余额:",
+      "step1": "在下方厂商列表点击一家,进入配置页",
+      "step2": "粘贴该平台的 API Key 并保存(立即生效)",
+      "step3": "回到桌面,悬浮窗即显示真实用量;顶部悬停可调出工具按钮",
+      "popular": "热门厂商:"
+    },
+    "import": {
+      "title": "从 CC Switch 导入",
+      "scan": "扫描 CC Switch 数据",
+      "notFound": "未找到 CC Switch 数据库",
+      "readError": "读取失败",
+      "empty": "数据库中未发现带密钥的配置",
+      "hint": "仅官方平台 Key 可导入;中转站(new-api 等)不支持,标记为「无法识别」。",
+      "unknown": "无法识别",
+      "importSel": "导入所选",
+      "close": "关闭",
+      "imported": "已导入 {{n}} 个账户并热加载"
+    },
     "vendors": {
       "title": "厂商配置",
       "desc": "点击厂商进入配置页,填写后保存立即生效;每次启动会自动加载已保存的配置。",

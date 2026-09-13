@@ -24,6 +24,7 @@ import { WindowManager } from './windows'
 import { createTray } from './tray'
 import { themesPayload, watchThemes } from './themes'
 import { logosPayload, hasLogo, removeLogo, saveLogo, watchLogos } from './logos'
+import { scanCcSwitch } from './ccswitch'
 import { decryptAccounts } from './config'
 import type { DisplayConfig } from './config'
 
@@ -99,6 +100,20 @@ function bootstrap(): void {
     watchLogos(broadcastLogos)
     ipcMain.handle('logos:upload', (_e, vendorId: string, dataUrl: string) => saveLogo(vendorId, dataUrl))
     ipcMain.handle('logos:remove', (_e, vendorId: string) => removeLogo(vendorId))
+
+    // ── CC Switch 导入(F11):只读扫描 + 批量导入所选 ──
+    ipcMain.handle('ccswitch:scan', () => scanCcSwitch())
+    ipcMain.handle('ccswitch:import', (_e, items: { vendorId: string; name: string; key: string }[]) => {
+      let imported = 0
+      for (const item of items) {
+        if (!item.vendorId || !item.key) continue
+        const id = nextAccountId(item.vendorId)
+        upsertAccount(item.vendorId, { id, name: item.name || id, key: item.key })
+        imported++
+      }
+      if (imported > 0) reloadAll()
+      return imported
+    })
 
     // ── 托盘 ──
     const tray = createTray({
