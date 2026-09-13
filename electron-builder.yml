@@ -15,6 +15,9 @@ extraResources:
   - from: resources/vendors
     to: vendors
     filter: ["**/*"]
+  - from: resources/logos
+    to: logos
+    filter: ["**/*"]
   - from: resources/icons
     to: icons
     filter: ["**/*"]

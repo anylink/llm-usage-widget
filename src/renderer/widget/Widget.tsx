@@ -95,12 +95,25 @@ function alertLevel(u: number, eff: { warnPct: number; critPct: number }): '' | 
   return u >= eff.critPct ? 'crit' : u >= eff.warnPct ? 'warn' : ''
 }
 
-function Monogram({ name, color, dim }: { name: string; color: string; dim?: boolean }) {
+/** 厂商标识图:有 LOGO(dataURL)用图片,否则主题色+首字母;错误态变灰 */
+function VendorLogo({
+  vendorId,
+  name,
+  color,
+  dim,
+  logos
+}: {
+  vendorId: string
+  name: string
+  color: string
+  dim?: boolean
+  logos?: Record<string, string> | null
+}) {
+  const dimStyle = dim ? { filter: 'grayscale(1)', opacity: 0.5 } : undefined
+  const src = logos?.[vendorId]
+  if (src) return <img className="logo" src={src} alt="" draggable={false} style={dimStyle} />
   return (
-    <span
-      className="logo"
-      style={{ background: color, filter: dim ? 'grayscale(1)' : undefined, opacity: dim ? 0.5 : 1 }}
-    >
+    <span className="logo" style={{ background: color, ...dimStyle }}>
       {name.charAt(0).toUpperCase()}
     </span>
   )
@@ -184,7 +197,8 @@ function Card({
   isDemo,
   footLeft,
   extraHead,
-  toolbar
+  toolbar,
+  logos
 }: {
   entry: UsageEntry
   display: DisplayConfig
@@ -192,6 +206,7 @@ function Card({
   footLeft?: string
   extraHead?: React.ReactNode
   toolbar?: React.ReactNode
+  logos?: Record<string, string> | null
 }) {
   const { t } = useTranslation()
   const primary = entry.windows?.[0]
@@ -203,10 +218,12 @@ function Card({
     <div className={`card ${level ? `alert-${level}` : ''}`} style={{ ['--accent' as string]: entry.color }}>
       {toolbar}
       <div className="head drag">
-        <Monogram
+        <VendorLogo
+          vendorId={entry.vendorId}
           name={entry.vendorName}
           color={entry.color}
           dim={entry.status !== 'ok' && entry.status !== 'updating'}
+          logos={logos}
         />
         <span className="name" title={`${entry.vendorName} · ${entry.accountName}`}>
           {entry.vendorName}
@@ -281,12 +298,14 @@ function ListMode({
   entries,
   display,
   isDemo,
-  toolbar
+  toolbar,
+  logos
 }: {
   entries: UsageEntry[]
   display: DisplayConfig
   isDemo?: boolean
   toolbar?: React.ReactNode
+  logos?: Record<string, string> | null
 }) {
   const { t } = useTranslation()
   const alerts = display.alerts
@@ -314,10 +333,12 @@ function ListMode({
           const eff = effAlerts(e.vendorId, alerts)
           return (
             <div className="li-row" key={e.accountId}>
-              <Monogram
+              <VendorLogo
+                vendorId={e.vendorId}
                 name={e.vendorName}
                 color={e.color}
                 dim={e.status !== 'ok' && e.status !== 'updating'}
+                logos={logos}
               />
               <div className="li-main">
                 <div className="li-name">
@@ -380,6 +401,7 @@ export function Widget() {
   const [snapshot, setSnapshot] = useState<SchedulerSnapshot | null>(null)
   const [display, setDisplay] = useState<DisplayConfig | null>(null)
   const [themes, setThemes] = useState<ThemePayload | null>(null)
+  const [logos, setLogos] = useState<Record<string, string> | null>(null)
   const [bubble, setBubble] = useState<AlertEvent | null>(null)
   const [page, setPage] = useState(0)
   const [, setTick] = useState(0) // 倒计时每秒重绘
@@ -409,6 +431,8 @@ export function Widget() {
     })
     void window.api.getThemes().then((t2) => setThemes(t2 as ThemePayload))
     window.api.onThemesChanged((t2) => setThemes(t2 as ThemePayload))
+    void window.api.getLogos().then((l) => setLogos(l as Record<string, string>))
+    window.api.onLogosChanged((l) => setLogos(l as Record<string, string>))
     const t = setInterval(() => setTick((x) => x + 1), 1000)
     return () => {
       clearInterval(t)
@@ -545,12 +569,12 @@ function ResizeHandles(): React.ReactElement {
   if (configured.length === 0) {
     body =
       display.mode === 'list' ? (
-        <ListMode entries={[demoEntry(t), demoBalanceEntry(t)]} display={display} isDemo toolbar={toolbar} />
+        <ListMode entries={[demoEntry(t), demoBalanceEntry(t)]} display={display} isDemo toolbar={toolbar} logos={logos} />
       ) : (
-        <Card entry={demoEntry(t)} display={display} isDemo footLeft={t('widget.notConfigured')} toolbar={toolbar} />
+        <Card entry={demoEntry(t)} display={display} isDemo footLeft={t("widget.notConfigured")} toolbar={toolbar} logos={logos} />
       )
   } else if (display.mode === 'list') {
-    body = <ListMode entries={configured} display={display} toolbar={toolbar} />
+    body = <ListMode entries={configured} display={display} toolbar={toolbar} logos={logos} />
   } else {
     const count = configured.length
     const entry = configured[page % count]
@@ -559,6 +583,7 @@ function ResizeHandles(): React.ReactElement {
         entry={entry}
         display={display}
         toolbar={toolbar}
+        logos={logos}
         footLeft={count > 1 ? t('widget.pageIndicator', { cur: (page % count) + 1, total: count }) : ''}
         extraHead={
           <>

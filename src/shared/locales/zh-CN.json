@@ -99,7 +99,11 @@
       "console": "控制台",
       "fieldKey": "API Key",
       "fieldSecret": "Secret Key (SK)",
-      "fieldRegion": "Region(区域)"
+      "fieldRegion": "Region(区域)",
+      "logo": "厂商 LOGO",
+      "logoUpload": "上传图片(SVG/PNG/JPG)",
+      "logoRemove": "移除 LOGO",
+      "logoHint": "图片以厂商 id 存入 userData/logos 即全局生效;无图时用主题色 + 首字母兜底。"
     },
     "display": {
       "title": "显示",

@@ -18,6 +18,7 @@ import {
 import { WindowManager } from './windows'
 import { createTray } from './tray'
 import { themesPayload, watchThemes } from './themes'
+import { logosPayload, hasLogo, removeLogo, saveLogo, watchLogos } from './logos'
 import { decryptAccounts } from './config'
 import type { DisplayConfig } from './config'
 
@@ -82,6 +83,18 @@ function bootstrap(): void {
     ipcMain.handle('themes:list', () => themesPayload())
     watchThemes(broadcastThemes)
 
+    // ── 厂商 LOGO:dataURL 下发 + 用户目录热加载 + 上传/移除 ──
+    const broadcastLogos = (): void => {
+      const payload = logosPayload(loadVendors().vendors)
+      for (const w of BrowserWindow.getAllWindows()) {
+        if (!w.isDestroyed()) w.webContents.send('logos:changed', payload)
+      }
+    }
+    ipcMain.handle('logos:get', () => logosPayload(loadVendors().vendors))
+    watchLogos(broadcastLogos)
+    ipcMain.handle('logos:upload', (_e, vendorId: string, dataUrl: string) => saveLogo(vendorId, dataUrl))
+    ipcMain.handle('logos:remove', (_e, vendorId: string) => removeLogo(vendorId))
+
     // ── 托盘 ──
     const tray = createTray({
       onToggleWidget: () => {
@@ -142,9 +155,9 @@ function bootstrap(): void {
           homepage: v.homepage,
           fields: v.auth.fields,
           fieldHints: v.fieldHints,
-          intervalMs: v.defaultIntervalMs
-        })),
-        errors: result.errors,
+          intervalMs: v.defaultIntervalMs,
+          hasLogo: hasLogo(v.id)
+        })),        errors: result.errors,
         accounts: Object.fromEntries(
           Object.entries(loadAccounts()).map(([k, list]) => [
             k,

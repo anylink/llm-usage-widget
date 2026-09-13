@@ -20,6 +20,13 @@ const api = {
   onThemesChanged: (cb: (t: unknown) => void): void => {
     ipcRenderer.on('themes:changed', (_e, t) => cb(t))
   },
+  getLogos: (): Promise<unknown> => ipcRenderer.invoke('logos:get'),
+  onLogosChanged: (cb: (l: unknown) => void): void => {
+    ipcRenderer.on('logos:changed', (_e, l) => cb(l))
+  },
+  uploadLogo: (vendorId: string, dataUrl: string): Promise<boolean> =>
+    ipcRenderer.invoke('logos:upload', vendorId, dataUrl),
+  removeLogo: (vendorId: string): Promise<boolean> => ipcRenderer.invoke('logos:remove', vendorId),
   openVendorsDir: (): Promise<boolean> => ipcRenderer.invoke('config:openVendorsDir'),
   getCredential: (vendorId: string, accountId: string): Promise<unknown> =>
     ipcRenderer.invoke('config:getCredential', vendorId, accountId),

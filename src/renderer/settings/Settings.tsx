@@ -13,6 +13,7 @@ interface VendorRow {
   homepage?: string
   fields: string[]
   fieldHints?: Record<string, string>
+  hasLogo?: boolean
 }
 interface VendorListResp {
   vendors: VendorRow[]
@@ -379,6 +380,38 @@ function VendorDetail({
         <button className="ghost" onClick={addAccount}>
           {t(`${S}.addAccount`)}
         </button>
+      </section>
+
+      <section>
+        <h2>{t(`${S}.logo`)}</h2>
+        <div className="check-row" style={{ alignItems: 'center' }}>
+          <label className="ghost" style={{ cursor: 'pointer' }}>
+            {t(`${S}.logoUpload`)}
+            <input
+              type="file"
+              accept=".svg,.png,.jpg,.jpeg,.webp"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const f = e.target.files?.[0]
+                e.target.value = ''
+                if (!f) return
+                const reader = new FileReader()
+                reader.onload = (): void => {
+                  void window.api.uploadLogo(vendor.id, String(reader.result)).then(onSaved)
+                }
+                reader.readAsDataURL(f)
+              }}
+            />
+          </label>
+          {vendor.hasLogo && (
+            <button className="ghost" onClick={() => void window.api.removeLogo(vendor.id).then(onSaved)}>
+              {t(`${S}.logoRemove`)}
+            </button>
+          )}
+        </div>
+        <p className="hint" style={{ marginTop: 8 }}>
+          {t(`${S}.logoHint`)}
+        </p>
       </section>
 
       <section>

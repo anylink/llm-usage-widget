@@ -241,6 +241,11 @@ body,
   color: #fff;
   flex: none;
 }
+img.logo {
+  object-fit: contain;
+  padding: 2px;
+  box-sizing: border-box;
+}
 .name {
   font-size: 13px;
   font-weight: 600;
