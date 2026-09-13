@@ -121,7 +121,8 @@ input:focus {
 }
 .check-row {
   display: flex;
-  gap: 24px;
+  flex-wrap: wrap; /* 内容超宽时换行(如引导面板的厂商芯片),不溢出容器 */
+  gap: 10px 24px;
   padding-top: 6px;
 }
 label.check {
