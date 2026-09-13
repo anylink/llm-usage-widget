@@ -500,3 +500,17 @@ select {
   display: grid;
   gap: 0;
 }
+
+/* 导入区:按钮不换行不被压缩;URL 过长省略号(悬停可见全量) */
+.check-row button,
+.check-row label.ghost {
+  width: auto;
+  flex: none;
+  white-space: nowrap;
+}
+.ov-row .hint {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}

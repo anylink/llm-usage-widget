@@ -108,7 +108,14 @@ export async function scanCcSwitch(): Promise<CcSwitchScan> {
           key
         })
       }
-      return { available: true, path: dbPath, entries }
+      // 按 Key 去重:同一 Key 在 CC Switch 里可能存多条(不同 app_type/端点变体);
+      // 同 Key 重复时优先保留能识别出官方厂商的条目
+      const byKey = new Map<string, CcSwitchEntry>()
+      for (const e of entries) {
+        const prev = byKey.get(e.key)
+        if (!prev || (!prev.vendorId && e.vendorId)) byKey.set(e.key, e)
+      }
+      return { available: true, path: dbPath, entries: [...byKey.values()] }
     } finally {
       db.close()
     }
