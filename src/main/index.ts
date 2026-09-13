@@ -1,7 +1,12 @@
 /* 主进程入口:单实例、窗口、托盘、调度器、IPC 组装 */
+import fs from 'node:fs'
+import path from 'node:path'
 import { app, BrowserWindow, ipcMain, Notification } from 'electron'
+import { stringify as tomlStringify } from 'smol-toml'
+import type { VendorDef } from '@shared/types'
 import { createPluginRegistry } from './engine/plugins'
-import { loadVendors, watchVendors, userVendorsDir } from './engine/loader'
+import { loadVendors, userVendorsDir, watchVendors, validate } from './engine/loader'
+import { testVendor } from './engine/tester'
 import { Scheduler } from './scheduler'
 import { AlertManager } from './alerts'
 import { createI18n, resolveLocale } from '@shared/i18n'
@@ -170,6 +175,22 @@ function bootstrap(): void {
       const { shell } = await import('electron')
       await shell.openPath(userVendorsDir())
       return true
+    })
+    // ── 厂商编辑器(F8):取完整定义 / 测试请求 / 保存为用户 TOML ──
+    ipcMain.handle('config:getVendorDef', (_e, id: string) => {
+      return loadVendors().vendors.find((v) => v.id === id) ?? null
+    })
+    ipcMain.handle('vendor:test', (_e, def: VendorDef, cred: { key?: string }) => testVendor(def, cred))
+    ipcMain.handle('vendor:save', (_e, def: VendorDef) => {
+      try {
+        if (!/^[a-z0-9][a-z0-9-]*$/.test(def.id)) throw new Error('id 仅允许小写字母/数字/连字符')
+        validate(def, `${def.id}.toml`)
+        const toml = tomlStringify(def)
+        fs.writeFileSync(path.join(userVendorsDir(), `${def.id}.toml`), toml)
+        return { ok: true, file: `${def.id}.toml` }
+      } catch (err) {
+        return { ok: false, error: err instanceof Error ? err.message : String(err) }
+      }
     })
     // 凭证读取(仅设置窗口使用):返回明文供表单编辑。
     // 悬浮窗共用同一 preload 但用不到此接口,校验 sender 收窄明文 Key 暴露面

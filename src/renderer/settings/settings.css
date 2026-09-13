@@ -381,3 +381,99 @@ button.ghost {
   color: #5c6470;
   white-space: nowrap;
 }
+
+/* 厂商编辑器(F8) */
+.editor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.editor-grid label,
+.win-editor label {
+  font-size: 12px;
+  gap: 4px;
+}
+select {
+  padding: 7px 10px;
+  border: 1px solid #d6d9e0;
+  border-radius: 8px;
+  font-size: 13px;
+  background: #fff;
+  color: #1c1f26;
+}
+.win-editor {
+  border: 1px solid #d6d9e0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  display: grid;
+  gap: 8px;
+}
+.pick-target {
+  border: 1px dashed #4d6bfe;
+  background: #eef2ff;
+  color: #2c4bdf;
+  border-radius: 6px;
+  padding: 1px 8px;
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.pick-target.active {
+  background: #4d6bfe;
+  color: #fff;
+}
+.jt {
+  border: 1px solid #d6d9e0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  max-height: 280px;
+  overflow: auto;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 11.5px;
+  background: #fafbfd;
+}
+.jt-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.jt-row:hover {
+  background: #eef2ff;
+}
+.jt-key {
+  color: #2c4bdf;
+  flex: none;
+}
+.jt-val {
+  color: #5c6470;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.jt-caret,
+.jt-type {
+  color: #9aa1ad;
+  font-size: 10px;
+  flex: none;
+}
+.jt-children {
+  margin-left: 14px;
+  border-left: 1px dashed #d6d9e0;
+  padding-left: 8px;
+}
+.jt-pick {
+  margin-left: auto;
+  border: none;
+  background: #4d6bfe;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 10px;
+  padding: 1px 7px;
+  cursor: pointer;
+  flex: none;
+}

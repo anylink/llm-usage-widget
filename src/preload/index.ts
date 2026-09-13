@@ -16,6 +16,11 @@ const api = {
     ipcRenderer.on('alerts:bubble', (_e, ev) => cb(ev))
   },
   getVendorList: (): Promise<unknown> => ipcRenderer.invoke('config:vendorList'),
+  getVendorDef: (id: string): Promise<unknown> => ipcRenderer.invoke('config:getVendorDef', id),
+  testVendor: (def: unknown, cred: { key?: string }): Promise<unknown> =>
+    ipcRenderer.invoke('vendor:test', def, cred),
+  saveVendor: (def: unknown): Promise<{ ok: boolean; file?: string; error?: string }> =>
+    ipcRenderer.invoke('vendor:save', def),
   getThemes: (): Promise<unknown> => ipcRenderer.invoke('themes:list'),
   onThemesChanged: (cb: (t: unknown) => void): void => {
     ipcRenderer.on('themes:changed', (_e, t) => cb(t))

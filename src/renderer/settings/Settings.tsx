@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { DisplayConfig, ThemePayload, UpdateState } from '@shared/types'
 import { i18n } from './i18n'
 import { resolveLocale } from '@shared/i18n'
+import { EditorPage } from './Editor'
 
 interface VendorRow {
   id: string
@@ -34,7 +35,7 @@ const FIELD_KEYS: Record<string, string> = {
   region: 'fieldRegion'
 }
 
-type Page = 'vendors' | 'display' | 'alerts' | 'about'
+type Page = 'vendors' | 'display' | 'alerts' | 'about' | 'editor'
 
 /* 极简线性图标(f feather 风格,stroke 跟随文字色) */
 function Icon({ name }: { name: Page }) {
@@ -119,6 +120,7 @@ export function Settings() {
   const [openVendorId, setOpenVendorId] = useState<string | null>(null)
   const [updateState, setUpdateState] = useState<UpdateState | null>(null)
   const [themes, setThemes] = useState<ThemePayload | null>(null)
+  const [editorId, setEditorId] = useState<string | null>(null)
 
   const loadList = (): void => {
     void window.api.getVendorList().then((d) => setData(d as VendorListResp))
@@ -164,6 +166,10 @@ export function Settings() {
           loadList()
         }}
         onSaved={() => loadList()}
+        onEditor={(id) => {
+          setEditorId(id)
+          setPage('editor')
+        }}
       />
     )
   } else if (page === 'vendors') {
@@ -173,8 +179,24 @@ export function Settings() {
         onOpen={(id) => {
           setOpenVendorId(id)
         }}
+        onNewEditor={() => {
+          setEditorId(null)
+          setPage('editor')
+        }}
         version={version}
         enc={enc}
+      />
+    )
+  } else if (page === 'editor') {
+    content = (
+      <EditorPage
+        initialId={editorId}
+        onBack={() => {
+          setPage('vendors')
+          setEditorId(null)
+          loadList()
+        }}
+        onSaved={() => loadList()}
       />
     )
   } else if (page === 'display' && display) {
@@ -219,11 +241,13 @@ export function Settings() {
 function VendorListPage({
   data,
   onOpen,
+  onNewEditor,
   version,
   enc
 }: {
   data: VendorListResp | null
   onOpen(id: string): void
+  onNewEditor(): void
   version: string
   enc: boolean
 }) {
@@ -260,9 +284,14 @@ function VendorListPage({
       </section>
       <section>
         <h2>{t(`${S}.advanced`)}</h2>
-        <button className="ghost" onClick={() => void window.api.openVendorsDir()}>
-          {t(`${S}.openVendorsDir`)}
-        </button>
+        <div className="check-row">
+          <button className="ghost" onClick={() => void window.api.openVendorsDir()}>
+            {t(`${S}.openVendorsDir`)}
+          </button>
+          <button className="ghost" onClick={onNewEditor}>
+            {t('settings.editor.openNew')}
+          </button>
+        </div>
         <div className="hint" style={{ marginTop: 8 }}>
           {t(`${S}.vendorsHint`, {
             version,
@@ -279,12 +308,14 @@ function VendorDetail({
   vendor,
   data,
   onBack,
-  onSaved
+  onSaved,
+  onEditor
 }: {
   vendor: VendorRow
   data: VendorListResp | null
   onBack(): void
   onSaved(): void
+  onEditor(id: string): void
 }) {
   const { t } = useTranslation()
   const S = 'settings.vendors'
@@ -408,6 +439,9 @@ function VendorDetail({
               {t(`${S}.logoRemove`)}
             </button>
           )}
+          <button className="ghost" onClick={() => onEditor(vendor.id)}>
+            {t('settings.editor.editThis')}
+          </button>
         </div>
         <p className="hint" style={{ marginTop: 8 }}>
           {t(`${S}.logoHint`)}

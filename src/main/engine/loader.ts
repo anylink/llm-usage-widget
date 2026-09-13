@@ -21,7 +21,7 @@ export function userVendorsDir(): string {
   return path.join(app.getPath('userData'), 'vendors')
 }
 
-function validate(def: Partial<VendorDef>, file: string): VendorDef {
+export function validate(def: Partial<VendorDef>, file: string): VendorDef {
   const miss = (k: string): Error => new Error(`${file}: 缺少必填字段 ${k}`)
   if (!def.id) throw miss('id')
   if (!def.name) throw miss('name')
