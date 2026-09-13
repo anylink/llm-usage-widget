@@ -136,6 +136,15 @@ export function nextAccountId(vendorId: string): string {
   return `${vendorId}-${n}`
 }
 
+/** 删除一个账户(设置页删除入口);删空后该厂商变为未配置,占位不会在下次启动重建 */
+export function deleteAccount(vendorId: string, accountId: string): void {
+  const stored = loadAccounts()
+  const list = stored[vendorId]
+  if (!list) return
+  stored[vendorId] = list.filter((a) => a.id !== accountId)
+  saveAccounts(stored)
+}
+
 /** 读账户(解密后),只回传指定 vendor;附带账户元信息 */
 export function decryptAccounts(): Record<string, { id: string; name: string; key?: string; secret?: string; region?: string }[]> {
   const stored = loadAccounts()

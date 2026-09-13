@@ -123,7 +123,9 @@
       "logo": "Vendor logo",
       "logoUpload": "Upload image (SVG/PNG/JPG)",
       "logoRemove": "Remove logo",
-      "logoHint": "Images are stored by vendor id under userData/logos and apply everywhere; without one, brand color + initial is used."
+      "logoHint": "Images are stored by vendor id under userData/logos and apply everywhere; without one, brand color + initial is used.",
+      "deleteAccount": "Delete account",
+      "confirmDelete": "Confirm delete?"
     },
     "editor": {
       "title": "Vendor Editor",

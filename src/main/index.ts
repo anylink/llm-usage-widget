@@ -12,6 +12,7 @@ import { AlertManager } from './alerts'
 import { createI18n, resolveLocale } from '@shared/i18n'
 import { Updater } from './updater'
 import {
+  deleteAccount,
   ensureDefaultAccounts,
   isEncryptionAvailable,
   loadAccounts,
@@ -225,6 +226,11 @@ function bootstrap(): void {
       upsertAccount(vendorId, { id, name: name || id })
       reloadAll()
       return id
+    })
+    ipcMain.handle('config:deleteAccount', (_e, vendorId: string, accountId: string) => {
+      deleteAccount(vendorId, accountId)
+      reloadAll()
+      return true
     })
     ipcMain.handle('win:openSettings', () => {
       windows.openSettings(i18n.t('app.settingsTitle'))

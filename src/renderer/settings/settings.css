@@ -515,3 +515,25 @@ select {
   text-overflow: ellipsis;
   min-width: 0;
 }
+
+/* 账户删除:常显浅红,二次确认变实红 */
+.acc-actions {
+  gap: 10px;
+  align-items: center;
+}
+.acc-actions button {
+  width: auto;
+  flex: none;
+}
+button.danger-soft {
+  border-color: #f2c4c0;
+  color: #d64541;
+}
+button.danger-soft:hover {
+  background: #fdecec;
+}
+button.danger {
+  border-color: #e5534b;
+  background: #e5534b;
+  color: #fff;
+}

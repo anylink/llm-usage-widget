@@ -494,6 +494,18 @@ function VendorDetail({
     void window.api.addAccount(vendor.id, '').then(() => onSaved())
   }
 
+  /** 两步确认删除:第一次点变「确认删除?」,3 秒不点恢复 */
+  const [confirmId, setConfirmId] = useState<string | null>(null)
+  const deleteAccount = (accountId: string): void => {
+    if (confirmId !== accountId) {
+      setConfirmId(accountId)
+      setTimeout(() => setConfirmId((c) => (c === accountId ? null : c)), 3000)
+      return
+    }
+    setConfirmId(null)
+    void window.api.deleteAccount(vendor.id, accountId).then(onSaved)
+  }
+
   return (
     <div className="page">
       <button className="back" onClick={onBack}>
@@ -537,6 +549,15 @@ function VendorDetail({
                 </label>
               ))}
               <div className="acc-actions">
+                {confirmId === a.id ? (
+                  <button className="danger" onClick={() => deleteAccount(a.id)}>
+                    {t(`${S}.confirmDelete`)}
+                  </button>
+                ) : (
+                  <button className="danger-soft" onClick={() => deleteAccount(a.id)}>
+                    {t(`${S}.deleteAccount`)}
+                  </button>
+                )}
                 <button className="primary" onClick={() => saveAccount(a.id)}>
                   {t(`${S}.save`)}
                 </button>

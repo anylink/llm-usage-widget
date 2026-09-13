@@ -42,6 +42,8 @@ const api = {
     ipcRenderer.invoke('config:saveCredential', vendorId, account),
   addAccount: (vendorId: string, name: string): Promise<string> =>
     ipcRenderer.invoke('config:addAccount', vendorId, name),
+  deleteAccount: (vendorId: string, accountId: string): Promise<boolean> =>
+    ipcRenderer.invoke('config:deleteAccount', vendorId, accountId),
   openSettings: (): Promise<boolean> => ipcRenderer.invoke('win:openSettings'),
   resizeWidget: (d: { dW: number; dH: number; dX: number; dY: number }): Promise<boolean> =>
     ipcRenderer.invoke('win:resizeWidget', d),
