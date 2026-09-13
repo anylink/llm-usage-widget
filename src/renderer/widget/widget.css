@@ -109,8 +109,8 @@ body,
   -webkit-app-region: no-drag;
 }
 
-/* 顶部工具行:卡片内部第一行,与内容同一区域;平时整行是拖动区,
-   鼠标移到卡片顶部时按钮/标题渐显,移开即隐 */
+/* 顶部工具行:卡片内部第一行,与内容同一区域;按钮与标题常显,
+   整行兼作窗口拖动区 */
 .toolbar {
   display: flex;
   align-items: center;
@@ -119,15 +119,6 @@ body,
   margin-bottom: 4px;
   min-height: 22px;
   -webkit-app-region: drag;
-}
-.toolbar .tbtn,
-.toolbar .t-title {
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-.toolbar:hover .tbtn,
-.toolbar:hover .t-title {
-  opacity: 1;
 }
 .tbtn {
   -webkit-app-region: no-drag;
@@ -208,15 +199,12 @@ body,
   -webkit-app-region: drag;
 }
 
-/* 收起态:仅剩标题的紧凑卡片(标题常显避免空壳,按钮仍需悬停顶部) */
+/* 收起态:仅剩标题的紧凑卡片 */
 .card.collapsed-card {
   padding: 5px 8px;
 }
 .collapsed-card .toolbar {
   margin-bottom: 0;
-}
-.collapsed-card .t-title {
-  opacity: 1;
 }
 .no-drag,
 .no-drag * {

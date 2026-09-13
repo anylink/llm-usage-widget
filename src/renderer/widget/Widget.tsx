@@ -147,7 +147,7 @@ const ICONS = {
   gear: 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM4.6 12a7.4 7.4 0 0 1 .1-1.2L2.8 9.3l2-3.4 1.9.8a7.4 7.4 0 0 1 2-1.2L9 3.4h6l.3 2.1a7.4 7.4 0 0 1 2 1.2l1.9-.8 2 3.4-1.9 1.5a7.4 7.4 0 0 1 0 2.4l1.9 1.5-2 3.4-1.9-.8a7.4 7.4 0 0 1-2 1.2L15 20.6H9l-.3-2.1a7.4 7.4 0 0 1-2-1.2l-1.9.8-2-3.4 1.9-1.5a7.4 7.4 0 0 1-.1-1.2z'
 }
 
-/* 顶部工具行:与内容同卡片;平时整行是拖动区,鼠标移到卡片顶部时按钮渐显 */
+/* 顶部工具行:与内容同卡片,按钮/标题常显,整行兼作拖动区 */
 function Toolbar({
   display,
   onPatch,
@@ -608,7 +608,7 @@ function ResizeHandles(): React.ReactElement {
 
   return (
     <div className={`root ${display.locked ? 'locked' : ''}`} style={rootStyle}>
-      {/* 收起时:仅剩标题常显的紧凑卡片,鼠标移入顶部再显按钮 */}
+      {/* 收起时:标题常显的紧凑卡片 */}
       {display.collapsed ? <div className="card collapsed-card">{toolbar}</div> : body}
       {bubble && (
         <div
