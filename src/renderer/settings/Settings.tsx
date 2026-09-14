@@ -14,6 +14,7 @@ interface VendorRow {
   homepage?: string
   fields: string[]
   fieldHints?: Record<string, string>
+  fieldLabels?: Record<string, string>
   hasLogo?: boolean
 }
 interface VendorListResp {
@@ -538,7 +539,7 @@ function VendorDetail({
               </label>
               {vendor.fields.map((f) => (
                 <label key={f}>
-                  {t(`${S}.${FIELD_KEYS[f] ?? f}`)}
+                  {vendor.fieldLabels?.[f] ?? t(`${S}.${FIELD_KEYS[f] ?? f}`)}
                   <input
                     type={f === 'region' ? 'text' : 'password'}
                     value={(form as unknown as Record<string, string>)[f] ?? ''}

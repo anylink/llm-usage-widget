@@ -67,6 +67,10 @@ function parseOne(file: string): { def?: VendorDef; error?: string } {
       obj.fieldHints = obj.field_hints
       delete obj.field_hints
     }
+    if (obj.field_labels !== undefined) {
+      obj.fieldLabels = obj.field_labels
+      delete obj.field_labels
+    }
     const def = validate(obj, path.basename(file))
     return { def }
   } catch (err) {

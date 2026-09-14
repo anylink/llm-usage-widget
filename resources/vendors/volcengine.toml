@@ -18,3 +18,7 @@ fields = ["key", "secret", "region"]   # region 默认 cn-beijing
 key    = "火山引擎控制台的 AccessKey ID(AK),不是推理用的 API Key"
 secret = "火山引擎控制台的 SecretKey(SK),与 AK 配对"
 region = "资源区域,不填默认 cn-beijing"
+
+[fieldLabels]
+key    = "AccessKey ID"
+secret = "SecretAccessKey"

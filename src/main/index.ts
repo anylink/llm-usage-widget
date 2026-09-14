@@ -176,6 +176,7 @@ function bootstrap(): void {
           homepage: v.homepage,
           fields: v.auth.fields,
           fieldHints: v.fieldHints,
+          fieldLabels: v.fieldLabels,
           intervalMs: v.defaultIntervalMs,
           hasLogo: hasLogo(v.id)
         })),        errors: result.errors,

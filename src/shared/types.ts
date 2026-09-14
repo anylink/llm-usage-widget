@@ -115,6 +115,8 @@ export interface VendorDef {
   defaultIntervalMs?: number
   /** 凭证字段的填写提示(设置页渲染在输入框下) */
   fieldHints?: Record<string, string>
+  /** 凭证字段标签覆盖(如火山:key → "AccessKey ID");缺省用通用 i18n 文案 */
+  fieldLabels?: Record<string, string>
   auth: AuthSpec
   requests: RequestSpec[]
   check?: CheckSpec
