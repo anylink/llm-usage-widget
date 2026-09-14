@@ -62,7 +62,7 @@ function makePng(size) {
 }
 
 const files = [
-  ['build/icon.png', 256],
+  ['build/icon.png', 1024],
   ['resources/icons/tray@2x.png', 32],
   ['resources/icons/tray.png', 16]
 ]

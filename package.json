@@ -3,7 +3,10 @@
   "version": "0.2.0",
   "description": "Cross-platform desktop floating widget for LLM platform usage & balance",
   "main": "./out/main/index.js",
-  "author": "Apanda (anylink)",
+  "author": {
+    "name": "Apanda (anylink)",
+    "email": "1004239492@qq.com"
+  },
   "license": "MIT",
   "private": true,
   "scripts": {
